@@ -7,7 +7,7 @@ namespace Rds.CaraBus.RequestResponse.Extensions
         public static IServiceCollection AddCaraBusRequestClient(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<ICorrelationValueResolver, CorrelationValueResolver>();
-            serviceCollection.AddSingleton(typeof(IRequestClient<,>), typeof(RequestClient<,>));
+            serviceCollection.AddTransient(typeof(IRequestClient<,>), typeof(RequestClient<,>));
 
             return serviceCollection;
         }
