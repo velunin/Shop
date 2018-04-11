@@ -1,0 +1,35 @@
+﻿@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Checkout</h2>
+
+@if (ViewData["Error"]!=null)
+{
+    <div class="alert alert-danger">@ViewData["Error"].ToString()</div>
+}
+
+@if (Model.CartItems.Any())
+{
+    <ul class="list-group">
+        @foreach (var cartItem in Model.CartItems)
+        {
+            <li class="list-group-item container">
+                <div class="row">
+                    <div class="col-sm-1">@cartItem.Name</div>
+                    <div class="col-sm-1">@cartItem.Price р.</div>
+                    <div class="col-sm-1">X @cartItem.Count</div>
+                    <div class="col-sm-1">@(cartItem.Price * cartItem.Count) р.</div>
+                </div>
+            </li>
+        }
+    </ul>
+    <hr/>
+    <h2>Total: @Model.Sum р.</h2>
+    using (Html.BeginForm("IndexPost", "Order", FormMethod.Post))
+    {
+        <input type="submit" class="btn btn-primary" value="Create order"/>
+    }
+}
+

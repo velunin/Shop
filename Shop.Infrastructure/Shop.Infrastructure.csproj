@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSaga" Version="1.3.0" />
+    <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rds.CaraBus.RequestResponse\Rds.CaraBus.RequestResponse.csproj" />
+    <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

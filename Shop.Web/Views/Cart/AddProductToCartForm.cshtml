@@ -1,0 +1,8 @@
+﻿@model AddToCartModel
+
+@using (Html.BeginForm("Add", "Cart", FormMethod.Post))
+{
+    @Html.HiddenFor(m => m.ProductId)
+    @Html.HiddenFor(m => m.ReturnUrl)
+    <input type="submit" value="Add" class="btn btn-primary" />
+}
