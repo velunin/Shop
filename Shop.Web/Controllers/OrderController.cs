@@ -45,18 +45,18 @@ namespace Shop.Web.Controllers
             {
                 var orderItems = await GetOrderItems(cancellationToken);
 
-                var correlationId = Guid.NewGuid();
+                var orderId = Guid.NewGuid();
 
-                var result = await _createOrderClient.Request(
+                await _createOrderClient.Request(
                         new CreateOrderMessage(
-                                correlationId, 
+                                orderId, 
                                 orderItems),
                         cancellationToken)
                     .ConfigureAwait(false);
 
                 return RedirectToAction("Contacts", new
                 {
-                    orderId = result.OrderId
+                    orderId
                 });
             }
             catch (Exception ex)
