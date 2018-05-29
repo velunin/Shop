@@ -12,7 +12,7 @@ namespace Shop.Domain.Commands.Order
 
         public Guid OrderId { get; }
 
-        public OrderItem[] OrderItems { get; }
+        public OrderItem[] OrderItems { get; set; }
 
         public Guid CorrelationId => OrderId;
     }

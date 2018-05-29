@@ -15,7 +15,7 @@ namespace Shop.Domain.Sagas
 
         public Guid CorrelationId { get; set; }
 
-        public TCommand Command { get; }
+        public TCommand Command { get; set; }
     }
 
     public abstract class CorrelationCommandMessage<TCommand> : CommandMessage<TCommand> where TCommand : ICorrelatedCommand

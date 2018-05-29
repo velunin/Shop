@@ -100,7 +100,7 @@ namespace Shop.Web.Controllers
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            return _mapper.Map<IEnumerable<OrderItem>>(cartItems).ToArray(); ;
+            return _mapper.Map<IEnumerable<OrderItem>>(cartItems).ToArray();
         }
 
         private async Task<CheckoutViewModel> GetCheckoutViewModel(CancellationToken cancellationToken)
