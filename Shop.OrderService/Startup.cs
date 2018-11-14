@@ -1,32 +1,27 @@
 ﻿using System;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+using AutoMapper;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-using AutoMapper;
-
-using MassTransit;
-using MassTransit.ExtensionsDependencyInjectionIntegration;
-
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-
 using Rds.Cqrs.Commands;
 using Rds.Cqrs.Events;
 using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
-
 using Shop.DataAccess.EF;
+using Shop.Domain.Commands.Cart;
+using Shop.Domain.Commands.Order;
+using Shop.Domain.Events;
 using Shop.Infrastructure;
 using Shop.Services.Common;
 using Shop.Web.Models;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
-namespace Shop.Web
+namespace Shop.Services.Order
 {
     public class Startup
     {
@@ -38,7 +33,7 @@ namespace Shop.Web
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
@@ -47,9 +42,8 @@ namespace Shop.Web
                 options.UseNpgsql(Configuration.GetConnectionString("ShopConnectionPostgre")));
 
             services.AddAutoMapper();
-            services.AddRdsCqrs();
 
-            AddServiceBus(services);
+            services.AddRdsCqrs();
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -57,7 +51,7 @@ namespace Shop.Web
                         classes => classes
                             .AssignableTo(typeof(IQueryHandler<,>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -65,25 +59,45 @@ namespace Shop.Web
                         classes => classes
                             .AssignableTo(typeof(ICommandHandler<>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
+
+            AddServiceBus(services);
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
+        }
 
-            services.AddDistributedMemoryCache();
-            services.AddSession(options =>
-            { 
-                options.Cookie.Name = ".Shop.Web.Session";
-                options.IdleTimeout = TimeSpan.FromHours(4);
-                options.Cookie.HttpOnly = true;
-            });
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
-            return services.BuildServiceProvider();
+            app.UseMvc();
         }
 
         private void AddServiceBus(IServiceCollection services)
         {
-            services.AddServiceClient();
-            services.AddMassTransit();
+            services.AddServicesInfrastructure(srvCfg =>
+            {
+                srvCfg
+
+                    .AddServiceEndpoint(
+                        ServicesQueues.OrderServiceEventsQueue,
+                        consumeCfg => consumeCfg
+                            .AddEventConsumer<OrderCreated>())
+
+                    .AddServiceEndpoint(
+                        ServicesQueues.OrderServiceCommandQueue,
+                        consumeCfg => consumeCfg
+                            .AddCommandConsumer<DeleteProductFromCart>()
+                            .AddCommandConsumer<AddOrUpdateProductInCart>()
+                            .AddCommandConsumer<AddOrderContactsCommand>()
+                            .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings.CreateOrderCommandMap),
+
+                        ExceptionResponseMappings.DefaultOrderServiceMap);
+            });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
@@ -94,6 +108,8 @@ namespace Shop.Web
                     h.Username(rabbitConfig.User);
                     h.Password(rabbitConfig.Password);
                 });
+                
+                cfg.ConsumeServices(provider, host);
             }));
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
 
@@ -101,39 +117,10 @@ namespace Shop.Web
             services.AddSingleton(factory =>
             {
                 IEventDispatcher UnderlyingDispatcherAccessor() => factory.GetService<EventDispatcher>();
-                return (Func<IEventDispatcher>) UnderlyingDispatcherAccessor;
+                return (Func<IEventDispatcher>)UnderlyingDispatcherAccessor;
             });
             services.Decorate<IEventDispatcher>((inner, provider) =>
                 new MasstransitEventDispatcher(provider.GetRequiredService<IBus>()));
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseBrowserLink();
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
-           
-            app.UseStaticFiles();
-            app.UseSession();
-            app.Use(async (context, next) =>
-            {
-                context.Session.SetString("___forcreatesession___", @"¯\_(ツ)_/¯");
-                await next.Invoke();
-            });
-       
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
         }
     }
 }

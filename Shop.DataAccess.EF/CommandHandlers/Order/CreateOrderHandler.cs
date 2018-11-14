@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Rds.Cqrs.Commands;
@@ -20,7 +21,7 @@ namespace Shop.DataAccess.EF.CommandHandlers.Order
 
         public async Task HandleAsync(CreateOrderCommand command, CancellationToken cancellationToken)
         {
-
+            throw new Exception("some error");
             await _eventDispatcher.DispatchAsync(
                 new OrderCreated(command.OrderId),
                 cancellationToken);
