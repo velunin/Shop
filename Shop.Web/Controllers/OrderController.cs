@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using AutoMapper;
+
 using Microsoft.AspNetCore.Mvc;
-using Rds.CaraBus.RequestResponse;
+
 using Rds.Cqrs.Queries;
+
 using Shop.DataProjections.Queries;
 using Shop.Domain.Commands.Order;
-using Shop.Domain.Events;
+using Shop.Services.Common;
 using Shop.Web.Models;
 
 namespace Shop.Web.Controllers
@@ -17,20 +20,17 @@ namespace Shop.Web.Controllers
     public class OrderController : Controller
     {
         private readonly IQueryService _queryService;
-        private readonly IRequestClient<CreateOrderMessage, OrderCreated> _createOrderClient;
-        private readonly IRequestClient<AddOrderContactsMessage, OrderContactsAdded> _addContactsClient;
+        private readonly IServiceClient _serviceClient;
         private readonly IMapper _mapper;
 
         public OrderController(
             IQueryService queryService, 
             IMapper mapper,
-            IRequestClient<CreateOrderMessage, OrderCreated> createOrderClient, 
-            IRequestClient<AddOrderContactsMessage, OrderContactsAdded> addContactsClient)
+            IServiceClient serviceClient)
         {
             _queryService = queryService;
-            _createOrderClient = createOrderClient;
-            _addContactsClient = addContactsClient;
             _mapper = mapper;
+            _serviceClient = serviceClient;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -47,10 +47,11 @@ namespace Shop.Web.Controllers
 
                 var orderId = Guid.NewGuid();
 
-                await _createOrderClient.Request(
-                        new CreateOrderMessage(
+                await _serviceClient.ProcessAsync(
+                        new CreateOrderCommand(
                                 orderId, 
                                 orderItems),
+                        TimeSpan.FromSeconds(1000),
                         cancellationToken)
                     .ConfigureAwait(false);
 
@@ -78,9 +79,9 @@ namespace Shop.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _addContactsClient
-                    .Request(
-                        new AddOrderContactsMessage(
+                await _serviceClient
+                    .ProcessAsync(
+                        new AddOrderContactsCommand(
                             model.OrderId,
                             model.Name,
                             model.Email,

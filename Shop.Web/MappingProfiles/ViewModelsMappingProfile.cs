@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Shop.DataProjections;
 using Shop.DataProjections.Models;
 using Shop.Web.Models;
 

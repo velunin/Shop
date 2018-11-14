@@ -1,40 +1,32 @@
 ﻿using System;
-
+using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.DependencyInjection;
-
-using Shop.Infrastructure.SubscriptionConfigurators;
+using Rds.Cqrs.Commands;
+using Shop.Infrastructure.Configuration;
+using Shop.Infrastructure.Messaging;
+using Shop.Infrastructure.Messaging.MessageContracts;
 
 namespace Shop.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddAppInfrastructure<TServiceBusBootstrap>(this IServiceCollection services)
-            where TServiceBusBootstrap : AppServiceBusBootstrapBase
+        public static void AddCommandConsumer<TCommand>(this IServiceCollectionConfigurator configurator) where TCommand : class, ICommand
         {
-            services.AddSingleton<SagasSubscriptionConfigurator>();
-            services.AddSingleton<CommandsSubscriptionConfigurator>();
-            services.AddSingleton<EventsSubscriptionConfigurator>();
+            configurator.AddConsumer<CommandRequestConsumer<TCommand,EmptyResult>>();
+        }
 
-            services.AddSingleton<Func<SubscribersType,ISubscriptionConfigurator>>(serviceProvider =>
-            {
-                return subscribersType =>
-                {
-                    switch (subscribersType)
-                    {
-                        case SubscribersType.Sagas:
-                            return serviceProvider.GetService<SagasSubscriptionConfigurator>();
-                        case SubscribersType.Commands:
-                            return serviceProvider.GetService<CommandsSubscriptionConfigurator>();
-                        case SubscribersType.Events:
-                            return serviceProvider.GetService<EventsSubscriptionConfigurator>();
-                        default: throw new NotSupportedException($@"Subscribers type ""{subscribersType}"" not supported");
-                    }
-                };
-            });
+        public static void AddServicesInfrastructure(
+            this IServiceCollection serviceCollection, 
+            Action<IBusServiceEndpointsConfigurator> configureServiceEndpoints = null, 
+            Action<IServiceCollectionConfigurator> configureServiceCollection = null)
+        {
+            serviceCollection.AddMassTransit(configureServiceCollection);
 
-            services.AddSingleton<IAppServiceBusBootstrap, TServiceBusBootstrap>();
+            var busServiceEndpointsConfigurator = new BusServiceEndpointsConfigurator(serviceCollection);
 
-            return services;
+            configureServiceEndpoints?.Invoke(busServiceEndpointsConfigurator);
+
+            serviceCollection.AddSingleton<IBusServiceEndpointsConfigurator>(busServiceEndpointsConfigurator);
         }
     }
 }

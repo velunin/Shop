@@ -4,12 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Rds.CaraBus.RequestResponse;
-using Rds.Cqrs.Commands;
 using Rds.Cqrs.Queries;
-using RDS.CaraBus;
 using Shop.DataProjections.Queries;
-using Shop.Domain.Commands.Order;
 using Shop.Web.Models;
 
 namespace Shop.Web.Controllers
