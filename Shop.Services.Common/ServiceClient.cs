@@ -79,6 +79,7 @@ namespace Shop.Services.Common
 
         private IRequestClient<TCommand> CreateRequestClient<TCommand>() where TCommand : class
         {
+            //TODO:mapping command type to queue name
             return _bus.CreateClientFactory().CreateRequestClient<TCommand>(new Uri($"rabbitmq://127.0.0.1/{ServicesQueues.OrderServiceCommandQueue}"));
         }
     }
