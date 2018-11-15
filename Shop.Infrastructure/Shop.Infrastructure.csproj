@@ -9,7 +9,6 @@
     <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="5.1.4" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="5.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.1.1" />
-    <PackageReference Include="NSaga" Version="1.3.0" />
     <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
   </ItemGroup>
 

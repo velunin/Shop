@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataProjections", "Sho
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop.Services.Common", "Shop.Services.Common\Shop.Services.Common.csproj", "{E0DC5BFE-E702-4D30-A6CB-6556535C8D0A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Services.Order", "Shop.OrderService\Shop.Services.Order.csproj", "{14ECB10C-C69F-4157-BD82-733EFF5BD50A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Services.Order", "Shop.Services.Order\Shop.Services.Order.csproj", "{14ECB10C-C69F-4157-BD82-733EFF5BD50A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
