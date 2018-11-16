@@ -51,7 +51,7 @@ namespace Shop.Web.Controllers
                         new CreateOrderCommand(
                                 orderId, 
                                 orderItems),
-                        TimeSpan.FromSeconds(1000),
+                        TimeSpan.FromSeconds(5),
                         cancellationToken)
                     .ConfigureAwait(false);
 

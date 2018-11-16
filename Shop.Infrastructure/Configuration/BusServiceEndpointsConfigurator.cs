@@ -25,7 +25,7 @@ namespace Shop.Infrastructure.Configuration
         public IBusServiceEndpointsConfigurator AddServiceEndpoint(
             string queueName, 
             Action<IBusServiceConfigurator> configAction, 
-            Action<CommandExceptionHandlingOptions> exceptionHandlingConfig = null,
+            Action<CommandExceptionHandlingOptions> exceptionHandlingConfigure = null,
             Action<IReceiveEndpointConfigurator> receiveEndpointConfigure = null)
         {
             var configurator = new BusServiceConfigurator(_serviceCollection, _consumerCacheService);
@@ -35,8 +35,8 @@ namespace Shop.Infrastructure.Configuration
             _configs.Add(new EndpointConfigItem
             {
                 QueueName = queueName,
-                ReceiveEndpointConfigurator = receiveEndpointConfigure,
-                EndpointExceptionHandlingConfig = exceptionHandlingConfig,
+                ReceiveEndpointConfigure = receiveEndpointConfigure,
+                EndpointExceptionHandlingConfigure = exceptionHandlingConfigure,
                 ServiceConfigurator = configurator
             });
 
@@ -49,9 +49,9 @@ namespace Shop.Infrastructure.Configuration
             {
                 busFactoryConfigurator.ReceiveEndpoint(host, endpointConfigItem.QueueName, e =>
                 {
-                    e.UseCommandExceptionHandling(endpointConfigItem.EndpointExceptionHandlingConfig);
+                    e.UseCommandExceptionHandling(endpointConfigItem.EndpointExceptionHandlingConfigure);
 
-                    endpointConfigItem.ReceiveEndpointConfigurator?.Invoke(e);
+                    endpointConfigItem.ReceiveEndpointConfigure?.Invoke(e);
 
                     endpointConfigItem.ServiceConfigurator.Configure(e, provider);
                 });
@@ -62,9 +62,9 @@ namespace Shop.Infrastructure.Configuration
         {
             public string QueueName { get; set; }
 
-            public Action<IReceiveEndpointConfigurator> ReceiveEndpointConfigurator { get; set; }
+            public Action<IReceiveEndpointConfigurator> ReceiveEndpointConfigure { get; set; }
 
-            public Action<CommandExceptionHandlingOptions> EndpointExceptionHandlingConfig { get; set; }
+            public Action<CommandExceptionHandlingOptions> EndpointExceptionHandlingConfigure { get; set; }
 
             public IBusServiceConfigurator ServiceConfigurator { get; set; }
         }

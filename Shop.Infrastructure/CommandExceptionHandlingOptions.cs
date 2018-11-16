@@ -49,12 +49,24 @@ namespace Shop.Infrastructure
 
         public ExceptionResponse GetResponse(Exception ex)
         {
+            var response = ResolveResponse(ex);
+
+            if (string.IsNullOrEmpty(response.Description))
+            {
+                response.Description = $"{ex.GetType()}\r\n{ex.Message}\r\n{ex.StackTrace}";
+            }
+
+            return response;
+        }
+
+        private ExceptionResponse ResolveResponse(Exception ex)
+        {
             if (ExceptionMappings.TryGetValue(ex.GetType(), out var func))
             {
                 return func(ex);
             }
 
-            if(ExceptionMappings.TryGetValue(typeof(Exception), out var defaultExceptionFunc))
+            if (ExceptionMappings.TryGetValue(typeof(Exception), out var defaultExceptionFunc))
             {
                 return defaultExceptionFunc(ex);
             }
@@ -62,7 +74,7 @@ namespace Shop.Infrastructure
             return new ExceptionResponse
             {
                 Code = DefaultErrorCode,
-                Message = DefaultErrorMessage
+                Message = DefaultErrorMessage,
             };
         }
 
@@ -77,6 +89,7 @@ namespace Shop.Infrastructure
         public int Code { get; set; }
 
         public string Message { get; set; }
-    }
 
+        public string Description { get; set; }
+    }
 }

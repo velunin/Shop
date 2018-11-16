@@ -88,7 +88,6 @@ namespace Shop.Infrastructure
             action(configuration, provider);
         }
 
-
         public static void CommandConsumer<TCommand,TResult>(
             this IReceiveEndpointConfigurator configuration,
             IServiceProvider provider, 

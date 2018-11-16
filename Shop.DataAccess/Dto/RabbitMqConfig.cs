@@ -1,4 +1,4 @@
-﻿namespace Shop.Web.Models
+﻿namespace Shop.DataAccess.Dto
 {
     public class RabbitMqConfig
     {

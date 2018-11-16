@@ -7,7 +7,7 @@ namespace Shop.Infrastructure
 {
     public static class BusFactoryConfigurationExtensions
     {
-        public static void ConsumeServices(this IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
+        public static void LoadServices(this IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
             IServiceProvider provider, IRabbitMqHost host)
         {
             var config =

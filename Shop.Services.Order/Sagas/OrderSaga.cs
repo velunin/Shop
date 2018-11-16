@@ -1,7 +1,6 @@
 ﻿using System;
 using Automatonymous;
 using Marten.Schema;
-using MassTransit.Saga;
 
 namespace Shop.Web.Sagas
 {

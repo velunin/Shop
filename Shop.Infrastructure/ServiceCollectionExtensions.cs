@@ -1,7 +1,9 @@
 ﻿using System;
+using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.DependencyInjection;
 using Rds.Cqrs.Commands;
+using Rds.Cqrs.Events;
 using Shop.Infrastructure.Configuration;
 using Shop.Infrastructure.Messaging;
 using Shop.Infrastructure.Messaging.MessageContracts;
@@ -27,6 +29,15 @@ namespace Shop.Infrastructure
             configureServiceEndpoints?.Invoke(busServiceEndpointsConfigurator);
 
             serviceCollection.AddSingleton<IBusServiceEndpointsConfigurator>(busServiceEndpointsConfigurator);
+
+            serviceCollection.AddSingleton<EventDispatcher>();
+            serviceCollection.AddSingleton(factory =>
+            {
+                IEventDispatcher UnderlyingDispatcherAccessor() => factory.GetService<EventDispatcher>();
+                return (Func<IEventDispatcher>)UnderlyingDispatcherAccessor;
+            });
+            serviceCollection.Decorate<IEventDispatcher>((inner, provider) =>
+                new MasstransitEventDispatcher(provider.GetRequiredService<IBus>()));
         }
     }
 }

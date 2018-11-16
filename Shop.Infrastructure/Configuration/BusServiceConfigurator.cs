@@ -27,9 +27,9 @@ namespace Shop.Infrastructure.Configuration
             _eventTypes = new List<Type>();
         }
 
-        public IBusServiceConfigurator AddCommandConsumer<TCommand>(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) where TCommand : ICommand
+        public IBusServiceConfigurator AddCommandConsumer<TCommand>(Action<CommandExceptionHandlingOptions> exceptionHandlingConfigure = null) where TCommand : ICommand
         {
-            _commandExceptionHandlingConfigs.TryAdd(typeof(TCommand), configureExceptionHandling);
+            _commandExceptionHandlingConfigs.TryAdd(typeof(TCommand), exceptionHandlingConfigure);
 
             _serviceCollection.AddScoped(typeof(TCommand));
 
@@ -38,8 +38,6 @@ namespace Shop.Infrastructure.Configuration
             foreach (var consumerType in consumerTypes)
             {
                 _serviceCollection.AddScoped(consumerType);
-
-                //_consumerCacheService.Add(consumerType);
             }
 
             return this;
@@ -74,7 +72,6 @@ namespace Shop.Infrastructure.Configuration
 
             _eventTypes.Add(typeof(TEvent));
             _serviceCollection.AddScoped(eventConsumerType);
-            //_consumerCacheService.Add(eventConsumerType);
 
             return this;
         }

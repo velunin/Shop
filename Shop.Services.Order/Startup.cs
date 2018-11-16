@@ -1,6 +1,9 @@
 ﻿using System;
+
 using AutoMapper;
+
 using MassTransit;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -8,17 +11,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+
 using Rds.Cqrs.Commands;
-using Rds.Cqrs.Events;
 using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
+using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Events;
 using Shop.Infrastructure;
 using Shop.Services.Common;
-using Shop.Web.Models;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Order
@@ -79,7 +82,7 @@ namespace Shop.Services.Order
 
         private void AddServiceBus(IServiceCollection services)
         {
-            services.AddServicesInfrastructure(srvCfg =>
+            services.AddServices(srvCfg =>
             {
                 srvCfg
 
@@ -109,18 +112,10 @@ namespace Shop.Services.Order
                     h.Password(rabbitConfig.Password);
                 });
                 
-                cfg.ConsumeServices(provider, host);
+                cfg.LoadServices(provider, host);
             }));
-            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
 
-            services.AddSingleton<EventDispatcher>();
-            services.AddSingleton(factory =>
-            {
-                IEventDispatcher UnderlyingDispatcherAccessor() => factory.GetService<EventDispatcher>();
-                return (Func<IEventDispatcher>)UnderlyingDispatcherAccessor;
-            });
-            services.Decorate<IEventDispatcher>((inner, provider) =>
-                new MasstransitEventDispatcher(provider.GetRequiredService<IBus>()));
+            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
         }
     }
 }

@@ -18,7 +18,6 @@ namespace Shop.Infrastructure.Messaging.Extensions
         {
             configurator.UseExecute(context =>
             {
-              
                 if (!context.ReceiveContext.TryGetPayload(out CommandExceptionHandlingOptions handlingOptions))
                 {
                     handlingOptions = new CommandExceptionHandlingOptions();

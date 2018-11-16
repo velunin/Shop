@@ -14,7 +14,7 @@ namespace Shop.Services.Common
 
         private readonly IBus _bus;
 
-        private const int DefaultTimeoutInSec = 60;
+        private const int DefaultTimeoutInSec = 15;
 
         public ServiceClient(IBus bus)
         {
@@ -58,8 +58,12 @@ namespace Shop.Services.Common
         {
             var client = GetRequestClient<TCommand>();
 
+            var requestTimeout = RequestTimeout.After(ms: (int) timeout.TotalMilliseconds);
             var response = (await client
-                    .Create(command, cancellationToken, RequestTimeout.After(ms: (int)timeout.TotalMilliseconds))
+                    .Create(
+                        command,
+                        cancellationToken,
+                        requestTimeout)
                     .GetResponse<CommandResponse<TResult>>()
                     .ConfigureAwait(false))
                 .Message;
@@ -80,7 +84,10 @@ namespace Shop.Services.Common
         private IRequestClient<TCommand> CreateRequestClient<TCommand>() where TCommand : class
         {
             //TODO:mapping command type to queue name
-            return _bus.CreateClientFactory().CreateRequestClient<TCommand>(new Uri($"rabbitmq://127.0.0.1/{ServicesQueues.OrderServiceCommandQueue}"));
+            return _bus
+                .CreateClientFactory()
+                .CreateRequestClient<TCommand>(
+                    new Uri($"rabbitmq://127.0.0.1/{ServicesQueues.OrderServiceCommandQueue}"));
         }
     }
 }

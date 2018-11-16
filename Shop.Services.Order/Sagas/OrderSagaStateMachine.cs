@@ -3,8 +3,9 @@ using Automatonymous;
 using Automatonymous.Binders;
 using Rds.Cqrs.Commands;
 using Shop.Domain.Commands.Order;
+using Shop.Web.Sagas;
 
-namespace Shop.Web.Sagas
+namespace Shop.Services.Order.Sagas
 {
     public class OrderSagaStateMachine : MassTransitStateMachine<OrderSaga>
     {
@@ -23,14 +24,19 @@ namespace Shop.Web.Sagas
             Event(() => CreateOrder, x => x.CorrelateById(o => o.Message.CorrelationId));
 
             Initially(WhenCreateOrderCommand(commandProcessor));
-
+                
             During(OrderCreated,
-                When(AddOrderContacts)
-                    .ThenAsync(async context =>
-                    {
+                WhenAddOrderContactsCommand(commandProcessor));
+        }
 
-                        await commandProcessor.ProcessAsync(context.Data).ConfigureAwait(false);
-                    }));
+        private EventActivityBinder<OrderSaga, AddOrderContactsCommand> WhenAddOrderContactsCommand(
+            ICommandProcessor commandProcessor)
+        {
+            return When(AddOrderContacts)
+                .ThenAsync(async context =>
+                {
+                    await commandProcessor.ProcessAsync(context.Data).ConfigureAwait(false);
+                });
         }
 
         private EventActivityBinder<OrderSaga, CreateOrderCommand> WhenCreateOrderCommand(

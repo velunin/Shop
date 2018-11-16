@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Shop.OrderService;
 
 namespace Shop.Services.Order
 {

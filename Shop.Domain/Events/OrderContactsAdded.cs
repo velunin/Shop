@@ -1,10 +1,9 @@
 ﻿using System;
-using NSaga;
 using Shop.Domain.Commands;
 
 namespace Shop.Domain.Events
 {
-    public class OrderContactsAdded: ICorrelatedEvent, ISagaMessage
+    public class OrderContactsAdded: ICorrelatedEvent
     {
         public OrderContactsAdded(
             Guid orderId, 
