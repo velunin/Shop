@@ -4,7 +4,7 @@ using GreenPipes;
 using GreenPipes.Configurators;
 using MassTransit;
 using Rds.Cqrs.Commands;
-using Shop.Infrastructure.Messaging.MessageContracts;
+using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure.Messaging.Extensions
 {

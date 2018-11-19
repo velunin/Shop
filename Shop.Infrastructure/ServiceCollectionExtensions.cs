@@ -6,7 +6,7 @@ using Rds.Cqrs.Commands;
 using Rds.Cqrs.Events;
 using Shop.Infrastructure.Configuration;
 using Shop.Infrastructure.Messaging;
-using Shop.Infrastructure.Messaging.MessageContracts;
+using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure
 {
@@ -17,7 +17,7 @@ namespace Shop.Infrastructure
             configurator.AddConsumer<CommandRequestConsumer<TCommand,EmptyResult>>();
         }
 
-        public static void AddServicesInfrastructure(
+        public static void AddServices(
             this IServiceCollection serviceCollection, 
             Action<IBusServiceEndpointsConfigurator> configureServiceEndpoints = null, 
             Action<IServiceCollectionConfigurator> configureServiceCollection = null)

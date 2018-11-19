@@ -94,8 +94,6 @@ namespace Shop.Services.Order
                     .AddServiceEndpoint(
                         ServicesQueues.OrderServiceCommandQueue,
                         consumeCfg => consumeCfg
-                            .AddCommandConsumer<DeleteProductFromCart>()
-                            .AddCommandConsumer<AddOrUpdateProductInCart>()
                             .AddCommandConsumer<AddOrderContactsCommand>()
                             .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings.CreateOrderCommandMap),
 

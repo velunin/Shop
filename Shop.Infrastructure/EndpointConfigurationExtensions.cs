@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
 using GreenPipes;
@@ -8,12 +7,28 @@ using Rds.Cqrs.Commands;
 using Rds.Cqrs.Events;
 using Shop.Infrastructure.Messaging;
 using Shop.Infrastructure.Messaging.Extensions;
-using Shop.Infrastructure.Messaging.MessageContracts;
+using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure
 {
     public static class EndpointConfigurationExtensions
     {
+        public static void CommandConsumer<TCommand, TResult>(
+            this IReceiveEndpointConfigurator configuration,
+            IServiceProvider provider,
+            Action<CommandExceptionHandlingOptions> setupAction = null)
+            where TCommand : class, ICommand
+        {
+            configuration.Consumer<CommandRequestConsumer<TCommand, TResult>>(provider, op =>
+            {
+                op.UseRescue(CommandConsumerRescueContextFactory.Create, cfg =>
+                {
+                    cfg.UseCommandExceptionHandling(setupAction);
+                    cfg.UseCommandExceptionRespond();
+                });
+            });
+        }
+
         public static void CommandConsumer<TCommand>(this IReceiveEndpointConfigurator configuration,
             IServiceProvider provider,
             Action<CommandExceptionHandlingOptions> setupAction = null) where TCommand : ICommand
@@ -56,9 +71,8 @@ namespace Shop.Infrastructure
                 CallGenericCommandConsumer(commandType, typeof(EmptyResult), configuration, provider, setupAction);
             }
         }
-
         public static void EventConsumer<TEvent>(this IReceiveEndpointConfigurator configuration,
-            IServiceProvider provider) where TEvent : class,IEvent
+            IServiceProvider provider) where TEvent : class, IEvent
         {
             configuration.Consumer<EventConsumer<TEvent>>(provider);
         }
@@ -86,22 +100,6 @@ namespace Shop.Infrastructure
             var action = lambda.Compile();
 
             action(configuration, provider);
-        }
-
-        public static void CommandConsumer<TCommand,TResult>(
-            this IReceiveEndpointConfigurator configuration,
-            IServiceProvider provider, 
-            Action<CommandExceptionHandlingOptions> setupAction = null) 
-            where TCommand : class,ICommand
-        {
-            configuration.Consumer<CommandRequestConsumer<TCommand,TResult>>(provider, op =>
-            {
-                op.UseRescue(CommandConsumerRescueContextFactory.Create, cfg =>
-                {
-                    cfg.UseCommandExceptionHandling(setupAction);
-                    cfg.UseCommandExceptionRespond();
-                });
-            });
         }
 
         private static void CallGenericCommandConsumer(

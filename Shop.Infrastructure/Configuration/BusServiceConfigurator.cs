@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Rds.Cqrs.Commands;
 using Rds.Cqrs.Events;
 using Shop.Infrastructure.Messaging;
-using Shop.Infrastructure.Messaging.MessageContracts;
+using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure.Configuration
 {

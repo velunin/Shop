@@ -3,7 +3,7 @@ using Automatonymous;
 using Automatonymous.Binders;
 using Rds.Cqrs.Commands;
 using Shop.Domain.Commands.Order;
-using Shop.Web.Sagas;
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace Shop.Services.Order.Sagas
 {
@@ -29,16 +29,6 @@ namespace Shop.Services.Order.Sagas
                 WhenAddOrderContactsCommand(commandProcessor));
         }
 
-        private EventActivityBinder<OrderSaga, AddOrderContactsCommand> WhenAddOrderContactsCommand(
-            ICommandProcessor commandProcessor)
-        {
-            return When(AddOrderContacts)
-                .ThenAsync(async context =>
-                {
-                    await commandProcessor.ProcessAsync(context.Data).ConfigureAwait(false);
-                });
-        }
-
         private EventActivityBinder<OrderSaga, CreateOrderCommand> WhenCreateOrderCommand(
             ICommandProcessor commandProcessor)
         {
@@ -56,6 +46,16 @@ namespace Shop.Services.Order.Sagas
                         .TransitionTo(OrderCreationError)
                         .Finalize())
                 .TransitionTo(OrderCreated);
+        }
+
+        private EventActivityBinder<OrderSaga, AddOrderContactsCommand> WhenAddOrderContactsCommand(
+            ICommandProcessor commandProcessor)
+        {
+            return When(AddOrderContacts)
+                .ThenAsync(async context =>
+                {
+                    await commandProcessor.ProcessAsync(context.Data).ConfigureAwait(false);
+                });
         }
     }
 }

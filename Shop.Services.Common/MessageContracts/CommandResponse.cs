@@ -1,4 +1,4 @@
-﻿namespace Shop.Infrastructure.Messaging.MessageContracts
+﻿namespace Shop.Services.Common.MessageContracts
 {
     public class CommandResponse<TResult>
     {

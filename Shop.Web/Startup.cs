@@ -19,8 +19,9 @@ using Rds.Cqrs.Commands;
 using Rds.Cqrs.Events;
 using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
-
+using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
+using Shop.Domain.Commands.Order;
 using Shop.Infrastructure;
 using Shop.Services.Common;
 using Shop.Web.Models;
@@ -82,14 +83,18 @@ namespace Shop.Web
 
         private void AddServiceBus(IServiceCollection services)
         {
-            services.AddServiceClient();
+            services.AddServiceClient(mapper => 
+                mapper
+                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
+            );
             services.AddMassTransit();
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
                 var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
 
-                var host = cfg.Host(new Uri(rabbitConfig.Uri), h =>
+                cfg.Host(new Uri(rabbitConfig.Uri), h =>
                 {
                     h.Username(rabbitConfig.User);
                     h.Password(rabbitConfig.Password);

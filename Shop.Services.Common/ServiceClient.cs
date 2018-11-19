@@ -2,9 +2,15 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+
 using MassTransit;
+
+using Microsoft.Extensions.Options;
+
 using Rds.Cqrs.Commands;
-using Shop.Infrastructure.Messaging.MessageContracts;
+
+using Shop.DataAccess.Dto;
+using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Services.Common
 {
@@ -13,12 +19,19 @@ namespace Shop.Services.Common
         private readonly ConcurrentDictionary<Type, object> _requestClientsCache = new ConcurrentDictionary<Type, object>();
 
         private readonly IBus _bus;
+        private readonly IQueuesMapper _mapper;
+        private readonly RabbitMqConfig _config;
 
         private const int DefaultTimeoutInSec = 15;
 
-        public ServiceClient(IBus bus)
+        public ServiceClient(
+            IBus bus, 
+            IQueuesMapper mapper, 
+            IOptions<RabbitMqConfig> config)
         {
             _bus = bus;
+            _mapper = mapper;
+            _config = config.Value;
         }
 
         public async Task ProcessAsync<TCommand>(
@@ -57,7 +70,7 @@ namespace Shop.Services.Common
             where TCommand : class
         {
             var client = GetRequestClient<TCommand>();
-
+            
             var requestTimeout = RequestTimeout.After(ms: (int) timeout.TotalMilliseconds);
             var response = (await client
                     .Create(
@@ -83,11 +96,23 @@ namespace Shop.Services.Common
 
         private IRequestClient<TCommand> CreateRequestClient<TCommand>() where TCommand : class
         {
-            //TODO:mapping command type to queue name
             return _bus
                 .CreateClientFactory()
                 .CreateRequestClient<TCommand>(
-                    new Uri($"rabbitmq://127.0.0.1/{ServicesQueues.OrderServiceCommandQueue}"));
+                BuildUriForCommand<TCommand>());
+        }
+
+        private Uri BuildUriForCommand<TCommand>()
+        {
+            var queue = _mapper.GetQueueName<TCommand>();
+            var host = _config.Uri;
+
+            if (!host.EndsWith("/"))
+            {
+                host += "/";
+            }
+
+            return new Uri($"{host}{queue}");
         }
     }
 }

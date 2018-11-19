@@ -5,7 +5,7 @@ using Shop.Infrastructure.Configuration;
 
 namespace Shop.Infrastructure
 {
-    public static class BusFactoryConfigurationExtensions
+    public static class BusFactoryConfiguratiorExtensions
     {
         public static void LoadServices(this IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
             IServiceProvider provider, IRabbitMqHost host)

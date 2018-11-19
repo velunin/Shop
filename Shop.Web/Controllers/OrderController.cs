@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.Extensions.Logging;
 using Rds.Cqrs.Queries;
 
 using Shop.DataProjections.Queries;
@@ -26,7 +26,8 @@ namespace Shop.Web.Controllers
         public OrderController(
             IQueryService queryService, 
             IMapper mapper,
-            IServiceClient serviceClient)
+            IServiceClient serviceClient, 
+            ILogger<OrderController> logger)
         {
             _queryService = queryService;
             _mapper = mapper;

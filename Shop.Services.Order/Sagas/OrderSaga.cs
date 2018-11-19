@@ -2,7 +2,7 @@
 using Automatonymous;
 using Marten.Schema;
 
-namespace Shop.Web.Sagas
+namespace Shop.Services.Order.Sagas
 {
     public class OrderSaga : SagaStateMachineInstance
     {

@@ -22,7 +22,8 @@ namespace Shop.DataAccess.EF.CommandHandlers.Order
         {
             await _eventDispatcher.DispatchAsync(
                 new OrderCreated(command.OrderId),
-                cancellationToken);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

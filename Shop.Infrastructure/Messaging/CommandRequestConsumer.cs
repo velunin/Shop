@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using Rds.Cqrs.Commands;
-using Shop.Infrastructure.Messaging.MessageContracts;
+using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure.Messaging
 {
@@ -9,14 +10,20 @@ namespace Shop.Infrastructure.Messaging
         where TCommand : class, ICommand   
     {
         private readonly ICommandProcessor _commandProcessor;
+        private readonly ILogger _logger;
 
-        public CommandRequestConsumer(ICommandProcessor commandProcessor)
+        public CommandRequestConsumer(
+            ICommandProcessor commandProcessor, 
+            ILogger<CommandRequestConsumer<TCommand, TResult>> logger)
         {
             _commandProcessor = commandProcessor;
+            _logger = logger;
         }
 
         public async Task Consume(ConsumeContext<TCommand> context)
         {
+            _logger.LogInformation($"Receive command: {typeof(TCommand)}. Result type: {typeof(TResult)}");
+
             var result = default(TResult);
 
             if (typeof(TResult) == typeof(EmptyResult))
