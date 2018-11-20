@@ -1,9 +1,10 @@
 ﻿using System;
-
+using System.Reflection;
 using AutoMapper;
-
+using Marten;
 using MassTransit;
-
+using MassTransit.MartenIntegration;
+using MassTransit.Saga;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ using Shop.Domain.Commands.Order;
 using Shop.Domain.Events;
 using Shop.Infrastructure;
 using Shop.Services.Common;
+using Shop.Services.Order.Sagas;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Order
@@ -41,8 +43,9 @@ namespace Shop.Services.Order
             services.AddMvc();
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
-            services.AddEntityFrameworkNpgsql().AddDbContext<ShopDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("ShopConnectionPostgre")));
+            services.AddEntityFrameworkSqlServer().AddDbContext < ShopDbContext >((provider, builder) => builder.UseSqlServer(Configuration.GetConnectionString("ShopConnectionPostgre")))
+            //services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>(options =>
+            //    options.(Configuration.GetConnectionString("ShopConnectionPostgre")));
 
             services.AddAutoMapper();
 
@@ -82,23 +85,30 @@ namespace Shop.Services.Order
 
         private void AddServiceBus(IServiceCollection services)
         {
+            //AddSagaRepository(services);
+
             services.AddServices(srvCfg =>
-            {
-                srvCfg
+                {
+                    srvCfg
 
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceEventsQueue,
-                        consumeCfg => consumeCfg
-                            .AddEventConsumer<OrderCreated>())
+                        .AddServiceEndpoint(
+                            ServicesQueues.OrderServiceEventsQueue,
+                            consumeCfg => consumeCfg
+                                .AddEventConsumer<OrderCreated>())
 
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceCommandQueue,
-                        consumeCfg => consumeCfg
-                            .AddCommandConsumer<AddOrderContactsCommand>()
-                            .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings.CreateOrderCommandMap),
+                        .AddServiceEndpoint(
+                            ServicesQueues.OrderServiceCommandQueue,
+                            consumeCfg => consumeCfg
+                                .AddCommandConsumer<AddOrderContactsCommand>()
+                                .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings
+                                    .CreateOrderCommandMap),
 
-                        ExceptionResponseMappings.DefaultOrderServiceMap);
-            });
+                            ExceptionResponseMappings.DefaultOrderServiceMap);
+                },
+                configurator =>
+                {
+                    //configurator.AddSaga<OrderSaga>();
+                });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
@@ -111,9 +121,20 @@ namespace Shop.Services.Order
                 });
                 
                 cfg.LoadServices(provider, host);
+                //cfg.ReceiveEndpoint(ServicesQueues.OrderServiceSagaQueue, e =>
+                //{
+                //    e.LoadFrom(provider);
+                //});
             }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
+        }
+
+        private void AddSagaRepository(IServiceCollection services)
+        {
+            services.AddTransient<IDocumentStore>(provider =>
+                DocumentStore.For(Configuration.GetConnectionString("ShopConnectionPostgre")));
+            services.AddSingleton(typeof(ISagaRepository<>), typeof(MartenSagaRepository<>));
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shop.DataAccess.Dto
 {
+    [Table("Shop_CartItem")]
     public class CartItem
     {
         [Key]

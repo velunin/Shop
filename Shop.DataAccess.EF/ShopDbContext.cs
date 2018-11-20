@@ -12,5 +12,7 @@ namespace Shop.DataAccess.EF
         public DbSet<Product> Product { get; set; }
 
         public DbSet<CartItem> CartItem { get; set; }
+
+        public DbSet<OrderSaga> OrderSaga { get; set; }
     }
 }

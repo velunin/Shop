@@ -85,7 +85,7 @@ namespace Shop.Web
         {
             services.AddServiceClient(mapper => 
                 mapper
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
                     .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
             );
             services.AddMassTransit();

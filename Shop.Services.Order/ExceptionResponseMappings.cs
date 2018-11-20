@@ -13,6 +13,7 @@ namespace Shop.Services.Order
 
         public static void CreateOrderCommandMap(CommandExceptionHandlingOptions options)
         {
+            options.Map<Exception>(20, "SomeError");
             options.Map<InvalidOperationException>(exp =>
             {
                 var message = exp.Message;
