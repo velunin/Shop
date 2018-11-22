@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using MassTransit;
 using Rds.Cqrs.Events;
 
@@ -7,16 +6,16 @@ namespace Shop.Infrastructure.Messaging
 {
     public class EventConsumer<TEvent> : IConsumer<TEvent> where TEvent : class, IEvent
     {
-        private readonly Func<IEventDispatcher> _underlyingDispatcherFactory;
+        private readonly IEventDispatcher _eventDispatcher;
 
-        public EventConsumer(Func<IEventDispatcher> underlyingDispatcherFactory)
+        public EventConsumer(IEventDispatcher eventDispatcher)
         {
-            _underlyingDispatcherFactory = underlyingDispatcherFactory;
+            _eventDispatcher = eventDispatcher;
         }
 
         public async Task Consume(ConsumeContext<TEvent> context)
         {
-            await _underlyingDispatcherFactory()
+            await _eventDispatcher
                 .DispatchAsync(context.Message, context.CancellationToken)
                 .ConfigureAwait(false);
         }

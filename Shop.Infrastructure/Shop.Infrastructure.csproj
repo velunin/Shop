@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit" Version="5.1.4" />
+    <PackageReference Include="MassTransit.Automatonymous.Extensions.DependencyInjection" Version="5.1.4" />
     <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="5.1.4" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="5.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.1.1" />

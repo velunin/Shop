@@ -26,6 +26,7 @@ namespace Shop.Services.Order.Sagas
             InstanceState(x => x.CurrentState);
 
             Event(() => CreateOrder, x => x.CorrelateById(o => o.Message.CorrelationId));
+            Event(() => AddOrderContacts, x => x.CorrelateById(o => o.Message.CorrelationId));
 
             Initially(WhenCreateOrderCommand(commandProcessor, logger));
                 
@@ -42,6 +43,7 @@ namespace Shop.Services.Order.Sagas
                     logger.LogInformation($"Receive command in saga: {typeof(OrderSaga)}");
                     await commandProcessor.ProcessAsync(context.Data).ConfigureAwait(false);
                 })
+                .Respond(new CommandResponse<EmptyResult>()).TransitionTo(OrderCreated)
                 .Catch<Exception>(binder =>
                     binder
                         .Respond(x => new CommandResponse<EmptyResult>(0, "Unknown error from saga response"))
@@ -50,9 +52,8 @@ namespace Shop.Services.Order.Sagas
                             //Compensative logic
                             logger.LogInformation("Do compensative actions");
                         })
-                        .TransitionTo(OrderCreationError)
-                        .Finalize())
-                .TransitionTo(OrderCreated);
+                        .TransitionTo(OrderCreationError))
+                ;
         }
 
         private EventActivityBinder<OrderSaga, AddOrderContactsCommand> WhenAddOrderContactsCommand(

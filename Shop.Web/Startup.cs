@@ -44,8 +44,9 @@ namespace Shop.Web
             services.AddMvc();
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
-            services.AddEntityFrameworkNpgsql().AddDbContext<ShopDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("ShopConnectionPostgre")));
+            services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>((provider, builder) =>
+                builder.UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
+                    .UseInternalServiceProvider(provider));
 
             services.AddAutoMapper();
             services.AddRdsCqrs();
@@ -85,7 +86,7 @@ namespace Shop.Web
         {
             services.AddServiceClient(mapper => 
                 mapper
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
                     .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
             );
             services.AddMassTransit();
@@ -101,15 +102,6 @@ namespace Shop.Web
                 });
             }));
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
-
-            services.AddSingleton<EventDispatcher>();
-            services.AddSingleton(factory =>
-            {
-                IEventDispatcher UnderlyingDispatcherAccessor() => factory.GetService<EventDispatcher>();
-                return (Func<IEventDispatcher>) UnderlyingDispatcherAccessor;
-            });
-            services.Decorate<IEventDispatcher>((inner, provider) =>
-                new MasstransitEventDispatcher(provider.GetRequiredService<IBus>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

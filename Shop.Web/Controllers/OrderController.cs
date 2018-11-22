@@ -48,13 +48,20 @@ namespace Shop.Web.Controllers
 
                 var orderId = Guid.NewGuid();
 
-                await _serviceClient.ProcessAsync(
-                        new CreateOrderCommand(
-                                orderId, 
+                try
+                {
+                    await _serviceClient.ProcessAsync(
+                            new CreateOrderCommand(
+                                orderId,
                                 orderItems),
-                        TimeSpan.FromSeconds(5),
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                            TimeSpan.FromSeconds(5),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (ServiceException ex)
+                {
+                    throw new Exception($"{ex.ErrorCode} - {ex.Message}");
+                }
 
                 return RedirectToAction("Contacts", new
                 {

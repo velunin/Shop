@@ -11,7 +11,7 @@ using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure
 {
-    public static class EndpointConfigurationExtensions
+    public static class ConsumersConfigurationExtensions
     {
         public static void CommandConsumer<TCommand, TResult>(
             this IReceiveEndpointConfigurator configuration,
@@ -81,7 +81,7 @@ namespace Shop.Infrastructure
             Type eventType,
             IServiceProvider provider)
         {
-            var eventConsumerMethod = typeof(EndpointConfigurationExtensions)
+            var eventConsumerMethod = typeof(ConsumersConfigurationExtensions)
                 .GetMethods()
                 .Single(m => m.Name == "EventConsumer" && m.GetGenericArguments().Length == 1)
                 .MakeGenericMethod(eventType);
@@ -109,7 +109,7 @@ namespace Shop.Infrastructure
             IServiceProvider provider,
             Action<CommandExceptionHandlingOptions> setupAction)
         {
-            var commandConsumerMethod = typeof(EndpointConfigurationExtensions)
+            var commandConsumerMethod = typeof(ConsumersConfigurationExtensions)
                 .GetMethods()
                 .Single(m => m.Name == "CommandConsumer" && m.GetGenericArguments().Length == 2)
                 .MakeGenericMethod(commandType, commandResultType);

@@ -17,6 +17,7 @@ namespace Shop.DataAccess.Dto
         {
         }
 
+        [Key]
         public Guid CorrelationId { get; set; }
 
         public string CurrentState { get; set; }

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Reflection;
+using Automatonymous;
 using AutoMapper;
-using Marten;
 using MassTransit;
-using MassTransit.MartenIntegration;
+using MassTransit.EntityFrameworkCoreIntegration.Saga;
 using MassTransit.Saga;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,7 +17,6 @@ using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
-using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Events;
 using Shop.Infrastructure;
@@ -43,9 +41,9 @@ namespace Shop.Services.Order
             services.AddMvc();
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
-            services.AddEntityFrameworkSqlServer().AddDbContext < ShopDbContext >((provider, builder) => builder.UseSqlServer(Configuration.GetConnectionString("ShopConnectionPostgre")))
-            //services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>(options =>
-            //    options.(Configuration.GetConnectionString("ShopConnectionPostgre")));
+            services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>((provider, builder) =>
+                builder.UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
+                   .UseInternalServiceProvider(provider), ServiceLifetime.Transient);
 
             services.AddAutoMapper();
 
@@ -67,6 +65,14 @@ namespace Shop.Services.Order
                     .AsImplementedInterfaces()
                     .WithTransientLifetime());
 
+            services.Scan(scan =>
+                scan.FromAssemblies(typeof(OrderSagaStateMachine).Assembly)
+                    .AddClasses(
+                        classes => classes
+                            .AssignableTo(typeof(SagaStateMachine<>)))
+                    .AsImplementedInterfaces()
+                    .WithTransientLifetime());
+
             AddServiceBus(services);
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
@@ -85,11 +91,14 @@ namespace Shop.Services.Order
 
         private void AddServiceBus(IServiceCollection services)
         {
-            //AddSagaRepository(services);
+            AddSagaRepository(services);
 
             services.AddServices(srvCfg =>
                 {
                     srvCfg
+
+                        .AddServiceEndpoint(ServicesQueues.OrderServiceSagaQueue,
+                            consumeCfg => consumeCfg.AddSaga<OrderSaga>())
 
                         .AddServiceEndpoint(
                             ServicesQueues.OrderServiceEventsQueue,
@@ -102,12 +111,7 @@ namespace Shop.Services.Order
                                 .AddCommandConsumer<AddOrderContactsCommand>()
                                 .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings
                                     .CreateOrderCommandMap),
-
                             ExceptionResponseMappings.DefaultOrderServiceMap);
-                },
-                configurator =>
-                {
-                    //configurator.AddSaga<OrderSaga>();
                 });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
@@ -121,10 +125,6 @@ namespace Shop.Services.Order
                 });
                 
                 cfg.LoadServices(provider, host);
-                //cfg.ReceiveEndpoint(ServicesQueues.OrderServiceSagaQueue, e =>
-                //{
-                //    e.LoadFrom(provider);
-                //});
             }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
@@ -132,9 +132,10 @@ namespace Shop.Services.Order
 
         private void AddSagaRepository(IServiceCollection services)
         {
-            services.AddTransient<IDocumentStore>(provider =>
-                DocumentStore.For(Configuration.GetConnectionString("ShopConnectionPostgre")));
-            services.AddSingleton(typeof(ISagaRepository<>), typeof(MartenSagaRepository<>));
+            services.AddTransient<ISagaRepository<OrderSaga>>(provider =>
+                new EntityFrameworkSagaRepository<OrderSaga>(provider.GetRequiredService<ShopDbContext>,
+                    optimistic: true));
+
         }
     }
 }
