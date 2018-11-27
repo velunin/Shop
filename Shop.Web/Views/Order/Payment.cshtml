@@ -1,0 +1,11 @@
+﻿@model PaymentModel
+@{
+    ViewData["Title"] = "Payment";
+}
+
+@using (Html.BeginForm("Payment", "Order", FormMethod.Post))
+{
+    @Html.HiddenFor(m => m.OrderId)
+
+    <input type="submit" value="Pay" class="btn btn-primary" />
+}

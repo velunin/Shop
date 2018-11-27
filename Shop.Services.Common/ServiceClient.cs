@@ -70,7 +70,7 @@ namespace Shop.Services.Common
             where TCommand : class
         {
             var client = GetRequestClient<TCommand>();
-            
+
             var requestTimeout = RequestTimeout.After(ms: (int) timeout.TotalMilliseconds);
             var response = (await client
                     .Create(
@@ -96,9 +96,7 @@ namespace Shop.Services.Common
 
         private IRequestClient<TCommand> CreateRequestClient<TCommand>() where TCommand : class
         {
-            return _bus
-                .CreateClientFactory()
-                .CreateRequestClient<TCommand>(
+            return _bus.CreateRequestClient<TCommand>(
                 BuildUriForCommand<TCommand>());
         }
 

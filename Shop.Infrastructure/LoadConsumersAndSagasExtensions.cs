@@ -27,7 +27,10 @@ namespace Shop.Infrastructure
 
                     foreach (var commandConfigItem in endpointConfig.ServiceConfiguration.GetCommandConfigs())
                     {
-                        e.CommandConsumer(commandConfigItem.MessageType, provider, commandConfigItem.ExceptionHandlingConfigure);
+                        e.CommandConsumer(
+                            commandConfigItem.MessageType, 
+                            provider, 
+                            commandConfigItem.ExceptionHandlingConfigure);
                     }
 
                     foreach (var eventType in endpointConfig.ServiceConfiguration.GetEventsTypes())

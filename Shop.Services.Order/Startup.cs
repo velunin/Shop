@@ -66,7 +66,7 @@ namespace Shop.Services.Order
                     .WithTransientLifetime());
 
             services.Scan(scan =>
-                scan.FromAssemblies(typeof(OrderSagaStateMachine).Assembly)
+                scan.FromAssemblies(typeof(OrderSaga).Assembly)
                     .AddClasses(
                         classes => classes
                             .AssignableTo(typeof(SagaStateMachine<>)))
@@ -74,6 +74,8 @@ namespace Shop.Services.Order
                     .WithTransientLifetime());
 
             AddServiceBus(services);
+
+            services.AddSingleton<IFakeMailService, FakeMailService>();
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
         }
@@ -98,7 +100,7 @@ namespace Shop.Services.Order
                     srvCfg
 
                         .AddServiceEndpoint(ServicesQueues.OrderServiceSagaQueue,
-                            consumeCfg => consumeCfg.AddSaga<OrderSaga>())
+                            consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
 
                         .AddServiceEndpoint(
                             ServicesQueues.OrderServiceEventsQueue,
@@ -132,10 +134,9 @@ namespace Shop.Services.Order
 
         private void AddSagaRepository(IServiceCollection services)
         {
-            services.AddTransient<ISagaRepository<OrderSaga>>(provider =>
-                new EntityFrameworkSagaRepository<OrderSaga>(provider.GetRequiredService<ShopDbContext>,
+            services.AddTransient<ISagaRepository<OrderSagaContext>>(provider =>
+                new EntityFrameworkSagaRepository<OrderSagaContext>(provider.GetRequiredService<ShopDbContext>,
                     optimistic: true));
-
         }
     }
 }

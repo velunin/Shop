@@ -84,10 +84,18 @@ namespace Shop.Web
 
         private void AddServiceBus(IServiceCollection services)
         {
-            services.AddServiceClient(mapper => 
+            services.AddServiceClient(mapper =>
                 mapper
+                
+                //Commands
                     .Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
                     .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
+
+                //Saga
+                //    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+                //    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
+                //    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
             );
             services.AddMassTransit();
 

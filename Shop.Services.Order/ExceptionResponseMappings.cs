@@ -8,7 +8,7 @@ namespace Shop.Services.Order
     {
         public static void DefaultOrderServiceMap(CommandExceptionHandlingOptions options)
         {
-            //options.SetDefaultExceptionResponse((int)ErrorCodes.UnknownError, "Unknown error");
+            options.SetDefaultExceptionResponse((int)ErrorCodes.UnknownError, "Unknown error");
         }
 
         public static void CreateOrderCommandMap(CommandExceptionHandlingOptions options)

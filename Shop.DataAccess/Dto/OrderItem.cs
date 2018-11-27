@@ -1,12 +1,14 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shop.DataAccess.Dto
 {
+    [Table("Shop_OrderItem")]
     public class OrderItem
     {
         [Key]
-        public Guid Id { get; set; }
+        public Guid OrderItemId { get; set; }
 
         public Guid OrderId { get; set; }
 

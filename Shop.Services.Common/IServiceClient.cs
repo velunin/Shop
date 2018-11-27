@@ -8,8 +8,8 @@ namespace Shop.Services.Common
     public interface IServiceClient
     {
         Task ProcessAsync<TCommand>(
-            TCommand command, 
-            TimeSpan timeout, 
+            TCommand command,
+            TimeSpan timeout,
             CancellationToken cancellationToken = default(CancellationToken))
             where TCommand : class, ICommand;
 
