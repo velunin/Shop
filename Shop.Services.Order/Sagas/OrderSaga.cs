@@ -38,7 +38,10 @@ namespace Shop.Services.Order.Sagas
 
         public Event<OrderHasBeenPayed> OrderHasBeenPayedEvent { get; private set; }
 
-        public OrderSaga(ICommandProcessor commandProcessor, ILogger<OrderSaga> logger, IFakeMailService mailService)
+        public OrderSaga(
+            ICommandProcessor commandProcessor,
+            ILogger<OrderSaga> logger, 
+            IFakeMailService mailService)
         {
             InstanceState(x => x.CurrentState);
 

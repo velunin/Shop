@@ -42,7 +42,9 @@ namespace Shop.Services.Common
             await SendCommand<TCommand, EmptyResult>(command, timeout, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task ProcessAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, ICommand
+        public Task ProcessAsync<TCommand>(
+            TCommand command,
+            CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, ICommand
         {
             return ProcessAsync(command, TimeSpan.FromSeconds(DefaultTimeoutInSec), cancellationToken);
         }
@@ -103,14 +105,9 @@ namespace Shop.Services.Common
         private Uri BuildUriForCommand<TCommand>()
         {
             var queue = _mapper.GetQueueName<TCommand>();
-            var host = _config.Uri;
+            var host = _config.Uri.Trim().TrimEnd('/');
 
-            if (!host.EndsWith("/"))
-            {
-                host += "/";
-            }
-
-            return new Uri($"{host}{queue}");
+            return new Uri($"{host}/{queue}");
         }
     }
 }

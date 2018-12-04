@@ -7,32 +7,34 @@
 {
     <table class="table">
         <tbody>
-        @foreach (var product in Model)
-        {
-        <tr>
-            <td>
-                @product.Name
-            </td>
-            <td>
-                @product.Price р.
-            </td>
-            <td>
-                @product.CountInCart
-            </td>
-            <td>
-                @if (product.CountInCart == 0)
-                {
-                    @Html.Partial("~/Views/Cart/AddProductToCartForm.cshtml", new AddToCartModel
-                        { ProductId = product.ProductId, ReturnUrl = Context.Request.Path})
-                }
-                else
-                {
-                    @Html.Partial("~/Views/Cart/DeleteProductFromCartForm.cshtml", new DeleteFromCartModel
-                    { ProductId = product.ProductId, ReturnUrl = Context.Request.Path})
-                }
-            </td>
-        </tr>
-        }
+            @foreach (var product in Model)
+            {
+                <tr>
+                    <td>
+                        @product.Name
+                    </td>
+                    <td>
+                        @product.Price р.
+                    </td>
+                    <td>
+                        @product.CountInCart
+                    </td>
+                    <td>
+                        @if (product.CountInCart == 0)
+                        {
+                            @Html.Partial("~/Views/Cart/AddProductToCartForm.cshtml", new AddToCartModel
+                            { ProductId = product.ProductId, ReturnUrl = Context.Request.Path })
+                        }
+                        else
+                        {
+                            @Html.Partial("~/Views/Cart/DeleteProductFromCartForm.cshtml", new DeleteFromCartModel
+                            { ProductId = product.ProductId, ReturnUrl = Context.Request.Path })
+                        }
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
+
+    <a asp-action="Index" asp-controller="Cart" class="btn btn-success">Cart</a>
 }
