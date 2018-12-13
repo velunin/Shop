@@ -2,10 +2,18 @@
 @{
     ViewData["Title"] = "Payment";
 }
+<h2>Payment form</h2>
 
-@using (Html.BeginForm("Payment", "Order", FormMethod.Post))
+@if (!string.IsNullOrEmpty(Model.Message))
 {
-    @Html.HiddenFor(m => m.OrderId)
+    <div class="alert alert-success">@Model.Message</div>
+}
+else
+{
+    using (Html.BeginForm("Payment", "Order", FormMethod.Post))
+    {
+        @Html.HiddenFor(m => m.OrderId)
 
-    <input type="submit" value="Pay" class="btn btn-primary" />
+        <input type="submit" value="Pay" class="btn btn-primary"/>
+    }
 }

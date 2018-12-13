@@ -46,7 +46,7 @@ namespace Shop.Web
 
             services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>((provider, builder) =>
                 builder.UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
-                    .UseInternalServiceProvider(provider));
+                    .UseInternalServiceProvider(provider), ServiceLifetime.Transient);
 
             services.AddAutoMapper();
             services.AddRdsCqrs();
@@ -58,6 +58,14 @@ namespace Shop.Web
                     .AddClasses(
                         classes => classes
                             .AssignableTo(typeof(IQueryHandler<,>)))
+                    .AsImplementedInterfaces()
+                    .WithScopedLifetime());
+
+            services.Scan(scan =>
+                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+                    .AddClasses(
+                        classes => classes
+                            .AssignableTo(typeof(IResultingCommandHandler<,>)))
                     .AsImplementedInterfaces()
                     .WithScopedLifetime());
 

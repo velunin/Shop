@@ -53,11 +53,10 @@ namespace Shop.Web.Controllers
                 var orderId = Guid.NewGuid();
 
                 await _commandProcessor.ProcessAsync(
-                        new CreateOrderCommand(
-                            orderId,
-                            orderItems),
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                    new CreateOrderCommand(
+                        orderId,
+                        orderItems),
+                    cancellationToken);
 
                 #region OverServiceBus
                 try
@@ -67,8 +66,7 @@ namespace Shop.Web.Controllers
                     //            orderId,
                     //            orderItems),
                     //        TimeSpan.FromSeconds(5),
-                    //        cancellationToken)
-                    //    .ConfigureAwait(false);
+                    //        cancellationToken);
                 }
                 catch (ServiceException ex)
                 {
@@ -102,13 +100,12 @@ namespace Shop.Web.Controllers
             {
 
                 await _commandProcessor.ProcessAsync(
-                        new AddOrderContactsCommand(
-                            model.OrderId,
-                            model.Name,
-                            model.Email,
-                            model.Phone),
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                    new AddOrderContactsCommand(
+                        model.OrderId,
+                        model.Name,
+                        model.Email,
+                        model.Phone),
+                    cancellationToken);
 
                 //await _serviceClient
                 //    .ProcessAsync(
@@ -117,8 +114,12 @@ namespace Shop.Web.Controllers
                 //            model.Name,
                 //            model.Email,
                 //            model.Phone),
-                //        cancellationToken)
-                //    .ConfigureAwait(false);
+                //        cancellationToken);
+
+                return RedirectToAction("Payment", new
+                {
+                    model.OrderId
+                });
             }
 
             return View(model);
@@ -126,7 +127,7 @@ namespace Shop.Web.Controllers
 
         public IActionResult Payment(Guid orderId)
         {
-            return View(new PaymentModel {OrderId = orderId});
+            return View(new PaymentModel { OrderId = orderId });
         }
 
         [HttpPost]
@@ -136,15 +137,13 @@ namespace Shop.Web.Controllers
             {
                 var result =
                     await _commandProcessor.ProcessAsync(
-                            new PayOrderCommand(model.OrderId),
-                            cancellationToken)
-                        .ConfigureAwait(false);
+                        new PayOrderCommand(model.OrderId),
+                        cancellationToken);
 
                 //   var result = await _serviceClient.ProcessAsync<PayOrderCommand, PayOrderResult>(
                 //            new PayOrderCommand(model.OrderId),
                 //            TimeSpan.FromSeconds(5),
-                //            cancellationToken)
-                //        .ConfigureAwait(false);
+                //            cancellationToken);
 
                 model.Message = result.Message;
             }
@@ -156,9 +155,8 @@ namespace Shop.Web.Controllers
         {
             var cartItems = await _queryService
                 .QueryAsync(
-                    new GetCartItems(HttpContext.Session.Id), 
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    new GetCartItems(HttpContext.Session.Id),
+                    cancellationToken);
 
             return _mapper.Map<IEnumerable<OrderItem>>(cartItems).ToArray();
         }
@@ -168,8 +166,7 @@ namespace Shop.Web.Controllers
             var cartItems = await _queryService
                 .QueryAsync(
                     new GetCartItems(HttpContext.Session.Id),
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    cancellationToken);
 
             var model = new CheckoutViewModel
             {

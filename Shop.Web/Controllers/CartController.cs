@@ -36,8 +36,7 @@ namespace Shop.Web.Controllers
         {
             var cartItems = await _queryService.QueryAsync(
                     new GetCartItems(HttpContext.Session.Id),
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    cancellationToken);
 
             var model = _mapper.Map<IEnumerable<CartItemModel>>(cartItems);
 
@@ -52,7 +51,7 @@ namespace Shop.Web.Controllers
                     Guid.NewGuid(), 
                     addToCart.ProductId,
                     HttpContext.Session.Id, 1), 
-                CancellationToken.None).ConfigureAwait(false);
+                CancellationToken.None);
 
             return Redirect(addToCart.ReturnUrl);
         }

@@ -4,12 +4,27 @@ using GreenPipes;
 using GreenPipes.Configurators;
 using MassTransit;
 using Rds.Cqrs.Commands;
+using Shop.Infrastructure.Messaging;
 using Shop.Services.Common.MessageContracts;
 
-namespace Shop.Infrastructure.Messaging.Extensions
+namespace Shop.Infrastructure.Extensions
 {
     public static class CommandConfigurationExtensions
     {
+        public static void UseCommandExceptionHandling(this IReceiveEndpointConfigurator configuration, Action<CommandExceptionHandlingOptions> setupAction = null)
+        {
+            configuration.UseContextFilter(context =>
+            {
+                var options = new CommandExceptionHandlingOptions();
+
+                setupAction?.Invoke(options);
+
+                context.GetOrAddPayload(() => options);
+
+                return Task.FromResult(true);
+            });
+        }
+
         public static void UseCommandExceptionHandling<TConsumer>(
             this IRescueConfigurator<ConsumerConsumeContext<TConsumer>, CommandConsumerRescueContext<TConsumer>>
                 configurator,
@@ -50,20 +65,6 @@ namespace Shop.Infrastructure.Messaging.Extensions
                 {
                     throw context.Exception;
                 }
-            });
-        }
-
-        public static void UseCommandExceptionHandling(this IReceiveEndpointConfigurator configuration, Action<CommandExceptionHandlingOptions> setupAction = null)
-        {
-            configuration.UseContextFilter(context =>
-            {
-                var options = new CommandExceptionHandlingOptions();
-
-                setupAction?.Invoke(options);
-
-                context.AddOrUpdatePayload(() => options, x => options);
-
-                return Task.FromResult(true);
             });
         }
     }

@@ -4,9 +4,8 @@ using MassTransit.AutomatonymousExtensionsDependencyInjectionIntegration;
 using MassTransit.RabbitMqTransport;
 using Microsoft.Extensions.DependencyInjection;
 using Shop.Infrastructure.Configuration;
-using Shop.Infrastructure.Messaging.Extensions;
 
-namespace Shop.Infrastructure
+namespace Shop.Infrastructure.Extensions
 {
     public static class LoadConsumersAndSagasExtensions
     {

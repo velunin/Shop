@@ -4,20 +4,23 @@
 }
 
 <h2>Contacts</h2>
-@using (Html.BeginForm("Contacts", "Order", FormMethod.Post))
+@using (Html.BeginForm("Contacts", "Order", null, FormMethod.Post, null, new { style="width: 450px" }))
 {
     @Html.HiddenFor(m => m.OrderId)
     <div class="form-group">
         @Html.LabelFor(m => m.Name)
         @Html.TextBoxFor(m => m.Name, null, new {@class = "form-control", placeholder = "Enter your name"})
+        @Html.ValidationMessageFor(model => model.Name, "", new {@class = "text-danger"})
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.Email)
         @Html.TextBoxFor(m => m.Email, null, new {@class = "form-control", placeholder = "Enter email"})
+        @Html.ValidationMessageFor(model => model.Email, "", new {@class = "text-danger"})
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.Phone)
         @Html.TextBoxFor(m => m.Phone, null, new {@class = "form-control", placeholder = "Enter phone"})
+        @Html.ValidationMessageFor(model => model.Phone, "", new {@class = "text-danger"})
     </div>
     <input type="submit" value="Send" class="btn btn-primary"/>
 }

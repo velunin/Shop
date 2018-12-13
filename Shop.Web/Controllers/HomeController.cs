@@ -25,11 +25,9 @@ namespace Shop.Web.Controllers
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var products = await _queryService.QueryAsync(new GetProducts(), cancellationToken)
-                .ConfigureAwait(false);
+            var products = await _queryService.QueryAsync(new GetProducts(), cancellationToken);
 
-            var cartItems = await _queryService.QueryAsync(new GetCartItems(HttpContext.Session.Id), cancellationToken)
-                .ConfigureAwait(false);
+            var cartItems = await _queryService.QueryAsync(new GetCartItems(HttpContext.Session.Id), cancellationToken);
 
             var model = products.GroupJoin(
                     cartItems,

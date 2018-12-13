@@ -20,6 +20,7 @@ using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Events;
 using Shop.Infrastructure;
+using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
 using Shop.Services.Order.Sagas;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
@@ -96,25 +97,27 @@ namespace Shop.Services.Order
             AddSagaRepository(services);
 
             services.AddServices(srvCfg =>
-                {
-                    srvCfg
+            {
+                srvCfg
 
-                        .AddServiceEndpoint(ServicesQueues.OrderServiceSagaQueue,
-                            consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
+                    //.AddServiceEndpoint(
+                    //    ServicesQueues.OrderServiceSagaQueue,
+                    //    consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
 
-                        .AddServiceEndpoint(
-                            ServicesQueues.OrderServiceEventsQueue,
-                            consumeCfg => consumeCfg
-                                .AddEventConsumer<OrderCreated>())
+                    //.AddServiceEndpoint(
+                    //    ServicesQueues.OrderServiceEventsQueue,
+                    //    consumeCfg => consumeCfg
+                    //        .AddEventConsumer<OrderCreated>())
 
-                        .AddServiceEndpoint(
-                            ServicesQueues.OrderServiceCommandQueue,
-                            consumeCfg => consumeCfg
-                                .AddCommandConsumer<AddOrderContactsCommand>()
-                                .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings
-                                    .CreateOrderCommandMap),
-                            ExceptionResponseMappings.DefaultOrderServiceMap);
-                });
+                    .AddServiceEndpoint(
+                        ServicesQueues.OrderServiceCommandQueue,
+                        consumeCfg => consumeCfg
+                            .AddCommandConsumer<AddOrderContactsCommand>()
+                            .AddCommandConsumer<PayOrderCommand>()
+                            .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings
+                                .CreateOrderCommandMap),
+                        ExceptionResponseMappings.DefaultOrderServiceMap);
+            });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
