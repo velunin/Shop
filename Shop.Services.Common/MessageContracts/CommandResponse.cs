@@ -27,7 +27,7 @@
             Result = result;
         }
 
-        public TResult Result { get; }
+        public TResult Result { get; set; }
     }
 
     public class EmptyResult
