@@ -52,21 +52,21 @@ namespace Shop.Web.Controllers
 
                 var orderId = Guid.NewGuid();
 
-                await _commandProcessor.ProcessAsync(
-                    new CreateOrderCommand(
-                        orderId,
-                        orderItems),
-                    cancellationToken);
+                //await _commandProcessor.ProcessAsync(
+                //    new CreateOrderCommand(
+                //        orderId,
+                //        orderItems),
+                //    cancellationToken);
 
                 #region OverServiceBus
                 try
                 {
-                    //await _serviceClient.ProcessAsync(
-                    //        new CreateOrderCommand(
-                    //            orderId,
-                    //            orderItems),
-                    //        TimeSpan.FromSeconds(5),
-                    //        cancellationToken);
+                    await _serviceClient.ProcessAsync(
+                            new CreateOrderCommand(
+                                orderId,
+                                orderItems),
+                            TimeSpan.FromSeconds(5),
+                            cancellationToken);
                 }
                 catch (ServiceException ex)
                 {
@@ -99,22 +99,22 @@ namespace Shop.Web.Controllers
             if (ModelState.IsValid)
             {
 
-                await _commandProcessor.ProcessAsync(
-                    new AddOrderContactsCommand(
-                        model.OrderId,
-                        model.Name,
-                        model.Email,
-                        model.Phone),
-                    cancellationToken);
+                //await _commandProcessor.ProcessAsync(
+                //    new AddOrderContactsCommand(
+                //        model.OrderId,
+                //        model.Name,
+                //        model.Email,
+                //        model.Phone),
+                //    cancellationToken);
 
-                //await _serviceClient
-                //    .ProcessAsync(
-                //        new AddOrderContactsCommand(
-                //            model.OrderId,
-                //            model.Name,
-                //            model.Email,
-                //            model.Phone),
-                //        cancellationToken);
+                await _serviceClient
+                    .ProcessAsync(
+                        new AddOrderContactsCommand(
+                            model.OrderId,
+                            model.Name,
+                            model.Email,
+                            model.Phone),
+                        cancellationToken);
 
                 return RedirectToAction("Payment", new
                 {
@@ -135,15 +135,15 @@ namespace Shop.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result =
-                    await _commandProcessor.ProcessAsync(
-                        new PayOrderCommand(model.OrderId),
-                        cancellationToken);
+                //var result =
+                //    await _commandProcessor.ProcessAsync(
+                //        new PayOrderCommand(model.OrderId),
+                //        cancellationToken);
 
-                //   var result = await _serviceClient.ProcessAsync<PayOrderCommand, PayOrderResult>(
-                //            new PayOrderCommand(model.OrderId),
-                //            TimeSpan.FromSeconds(5),
-                //            cancellationToken);
+                var result = await _serviceClient.ProcessAsync<PayOrderCommand, PayOrderResult>(
+                         new PayOrderCommand(model.OrderId),
+                         TimeSpan.FromSeconds(5),
+                         cancellationToken);
 
                 model.Message = result.Message;
             }

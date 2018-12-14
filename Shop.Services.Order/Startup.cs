@@ -100,14 +100,14 @@ namespace Shop.Services.Order
             {
                 srvCfg
 
-                    //.AddServiceEndpoint(
-                    //    ServicesQueues.OrderServiceSagaQueue,
-                    //    consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
+                    .AddServiceEndpoint(
+                        ServicesQueues.OrderServiceSagaQueue,
+                        consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
 
-                    //.AddServiceEndpoint(
-                    //    ServicesQueues.OrderServiceEventsQueue,
-                    //    consumeCfg => consumeCfg
-                    //        .AddEventConsumer<OrderCreated>())
+                    .AddServiceEndpoint(
+                        ServicesQueues.OrderServiceEventsQueue,
+                        consumeCfg => consumeCfg
+                            .AddEventConsumer<OrderCreated>())
 
                     .AddServiceEndpoint(
                         ServicesQueues.OrderServiceCommandQueue,
