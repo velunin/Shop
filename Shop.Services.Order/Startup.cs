@@ -56,7 +56,15 @@ namespace Shop.Services.Order
                         classes => classes
                             .AssignableTo(typeof(IQueryHandler<,>)))
                     .AsImplementedInterfaces()
-                    .WithTransientLifetime());
+                    .WithScopedLifetime());
+
+            services.Scan(scan =>
+                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
+                    .AddClasses(
+                        classes => classes
+                            .AssignableTo(typeof(IResultingCommandHandler<,>)))
+                    .AsImplementedInterfaces()
+                    .WithScopedLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -64,7 +72,7 @@ namespace Shop.Services.Order
                         classes => classes
                             .AssignableTo(typeof(ICommandHandler<>)))
                     .AsImplementedInterfaces()
-                    .WithTransientLifetime());
+                    .WithScopedLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(typeof(OrderSaga).Assembly)
