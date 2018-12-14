@@ -102,7 +102,8 @@ namespace Shop.Services.Order.Sagas
                             context.Instance.Name,
                             context.Instance.Email,
                             context.Instance.Phone).ConfigureAwait(false);
-                    }).Finalize());
+                    })
+                    .Finalize());
         }
     }
 }

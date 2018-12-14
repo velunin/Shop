@@ -19,7 +19,6 @@
 
         public CommandResponse()
         {
-            
         }
 
         public CommandResponse(TResult result)
