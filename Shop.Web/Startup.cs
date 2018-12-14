@@ -96,14 +96,14 @@ namespace Shop.Web
                 mapper
                 
                 //Commands
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
-                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
-                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    //.Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    //.Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    //.Map<PayOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
 
-                //Saga
-                //    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
-                //    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
-                //    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    //Saga
+                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
             );
             services.AddMassTransit();
 
