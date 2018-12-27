@@ -1,34 +1,26 @@
 ﻿using System;
-
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+using AutoMapper;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-using AutoMapper;
-
-using MassTransit;
-using MassTransit.ExtensionsDependencyInjectionIntegration;
-
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-
 using Rds.Cqrs.Commands;
 using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
-
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 using Shop.Infrastructure;
+using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
-
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
-namespace Shop.Web
+namespace Shop.Services.Cart
 {
     public class Startup
     {
@@ -45,9 +37,14 @@ namespace Shop.Web
             services.AddMvc();
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
-            services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>((provider, builder) =>
-                builder.UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
-                    .UseInternalServiceProvider(provider), ServiceLifetime.Transient);
+            services
+                .AddEntityFrameworkSqlServer()
+                .AddDbContext<ShopDbContext>(
+                    (provider, builder) =>
+                        builder
+                            .UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
+                            .UseInternalServiceProvider(provider),
+                    ServiceLifetime.Transient);
 
             services.AddAutoMapper();
             services.AddRdsCqrs();
@@ -80,41 +77,35 @@ namespace Shop.Web
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
 
-            services.AddDistributedMemoryCache();
-            services.AddSession(options =>
-            { 
-                options.Cookie.Name = ".Shop.Web.Session";
-                options.IdleTimeout = TimeSpan.FromHours(4);
-                options.Cookie.HttpOnly = true;
-            });
-
             return services.BuildServiceProvider();
         }
 
         private void AddServiceBus(IServiceCollection services)
         {
-            services.AddServiceClient(mapper =>
-                mapper
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
-                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
-                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
-
-                    .Map<AddOrUpdateProductInCart>(ServicesQueues.CartServiceCommandsQueue)
-                    .Map<DeleteProductFromCart>(ServicesQueues.CartServiceCommandsQueue)
-            );
-
-            services.AddMassTransit();
+            services.AddServices(srvCfg =>
+            {
+                srvCfg
+                    .AddServiceEndpoint(
+                        ServicesQueues.CartServiceCommandsQueue,
+                        consumeCfg => consumeCfg
+                            .AddCommandConsumer<AddOrUpdateProductInCart>()
+                            .AddCommandConsumer<DeleteProductFromCart>(),
+                        x => x.SetDefaultExceptionResponse(0, "Unknown error"));
+            });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
                 var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
 
-                cfg.Host(new Uri(rabbitConfig.Uri), h =>
+                var host = cfg.Host(new Uri(rabbitConfig.Uri), h =>
                 {
                     h.Username(rabbitConfig.User);
                     h.Password(rabbitConfig.Password);
                 });
+
+                cfg.LoadServices(provider, host);
             }));
+
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
         }
 
@@ -123,28 +114,15 @@ namespace Shop.Web
         {
             if (env.IsDevelopment())
             {
-                app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
-           
-            app.UseStaticFiles();
-            app.UseSession();
-            app.Use(async (context, next) =>
-            {
-                context.Session.SetString("___forcreatesession___", @"¯\_(ツ)_/¯");
-                await next.Invoke();
-            });
-       
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+
+            app.UseHttpsRedirection();
+            app.UseMvc();
         }
     }
 }

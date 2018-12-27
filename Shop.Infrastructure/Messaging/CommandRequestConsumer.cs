@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Rds.Cqrs.Commands;
@@ -22,22 +23,38 @@ namespace Shop.Infrastructure.Messaging
 
         public async Task Consume(ConsumeContext<TCommand> context)
         {
-            _logger.LogInformation($"Receive command: {typeof(TCommand)}. Result type: {typeof(TResult)}");
+            LogDebugInfo(context);
 
-            var result = default(TResult);
-
-            if (typeof(TResult) == typeof(EmptyResult))
+            try
             {
-                await _commandProcessor.ProcessAsync(context.Message, context.CancellationToken)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                result = await _commandProcessor.ProcessAsync((IResultingCommand<TResult>)context.Message, context.CancellationToken)
-                    .ConfigureAwait(false);
-            }
+                var result = default(TResult);
 
-            await context.RespondAsync(new CommandResponse<TResult>(result)).ConfigureAwait(false);
+                if (typeof(TResult) == typeof(EmptyResult))
+                {
+                    await _commandProcessor.ProcessAsync(context.Message, context.CancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    result = await _commandProcessor.ProcessAsync((IResultingCommand<TResult>) context.Message,
+                            context.CancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                await context.RespondAsync(new CommandResponse<TResult>(result)).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Command consume error");
+                throw;
+            }
+        }
+
+        private void LogDebugInfo(MessageContext context)
+        {
+            _logger.LogDebug($"Receive command: {typeof(TCommand)}\r\n" +
+                             $"Result type: {typeof(TResult)}\r\n" +
+                             $"{(context.RequestId.HasValue ? $"RequestId: {context.RequestId.Value}" : string.Empty)}");
         }
     }
 }

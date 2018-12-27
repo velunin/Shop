@@ -6,8 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="RDS.CaraBus" Version="2.0.0-alpha1" />
-    <PackageReference Include="RDS.CaraBus.RabbitMQ" Version="2.0.0-alpha1" />
     <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
   </ItemGroup>
 

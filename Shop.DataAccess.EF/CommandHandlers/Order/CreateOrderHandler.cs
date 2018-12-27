@@ -26,7 +26,7 @@ namespace Shop.DataAccess.EF.CommandHandlers.Order
 
         public async Task HandleAsync(CreateOrderCommand command, CancellationToken cancellationToken)
         {
-            TestCheck(command);
+            await Validate(command, cancellationToken).ConfigureAwait(false);
 
             using (var transaction =
                 await _context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
@@ -67,15 +67,26 @@ namespace Shop.DataAccess.EF.CommandHandlers.Order
             }
         }
 
-        private static void TestCheck(CreateOrderCommand command)
+        private async Task Validate(CreateOrderCommand command, CancellationToken cancellationToken)
         {
             if (command.OrderItems.Any(x => x.ProductId == Guid.Parse("C09DDC26-FCF8-4EEB-B178-E93C01B81D92")))
             {
+                await _bus.Publish(
+                        new OrderCreatingUnknownError(command.OrderId),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
                 throw new Exception("Some error");
+
             }
 
             if (command.OrderItems.Any(x => x.ProductId == Guid.Parse("EA8D2304-2103-416C-99A2-3DF694CF2FEE")))
             {
+                await _bus.Publish(
+                        new OrderCreatingAlreadySoldError(command.OrderId),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
                 throw new InvalidOperationException("Already sold");
             }
         }

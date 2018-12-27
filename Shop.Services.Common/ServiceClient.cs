@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MassTransit;
 
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 using Rds.Cqrs.Commands;
 
@@ -20,17 +21,20 @@ namespace Shop.Services.Common
 
         private readonly IBus _bus;
         private readonly IQueuesMapper _mapper;
+        private readonly ILogger _logger;
         private readonly RabbitMqConfig _config;
 
         private const int DefaultTimeoutInSec = 15;
 
         public ServiceClient(
             IBus bus, 
-            IQueuesMapper mapper, 
+            IQueuesMapper mapper,
+            ILogger<ServiceClient> logger,
             IOptions<RabbitMqConfig> config)
         {
             _bus = bus;
             _mapper = mapper;
+            _logger = logger;
             _config = config.Value;
         }
 
@@ -74,17 +78,26 @@ namespace Shop.Services.Common
             var client = GetRequestClient<TCommand>();
 
             var requestTimeout = RequestTimeout.After(ms: (int) timeout.TotalMilliseconds);
-            var response = (await client
-                    .Create(
-                        command,
-                        cancellationToken,
-                        requestTimeout)
+            var requestHandle = client
+                .Create(
+                    command,
+                    cancellationToken,
+                    requestTimeout);
+
+           _logger.LogDebug($"Send command: {typeof(TCommand)}\r\n" +
+                            $"RequestId: {requestHandle.RequestId}");
+
+            var response = (await requestHandle
                     .GetResponse<CommandResponse<TResult>>()
                     .ConfigureAwait(false))
                 .Message;
 
             if (response.ErrorCode.HasValue)
             {
+                _logger.LogDebug($"Error response for command: {typeof(TCommand)}\r\n" +
+                                 $"RequestId: {requestHandle.RequestId}\r\n" +
+                                 $"ErrorCode: {response.ErrorCode.Value}, Message: {response.ErrorMessage}");
+
                 throw new ServiceException(response.ErrorMessage, response.ErrorCode.Value);
             }
 
