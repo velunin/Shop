@@ -1,6 +1,6 @@
 ﻿using System;
 using Shop.Infrastructure;
-using Shop.Services.Common.Order;
+using Shop.Services.Common.ErrorCodes;
 
 namespace Shop.Services.Order
 {
@@ -8,7 +8,7 @@ namespace Shop.Services.Order
     {
         public static void DefaultOrderServiceMap(CommandExceptionHandlingOptions options)
         {
-            options.SetDefaultExceptionResponse((int)ErrorCodes.UnknownError, "Unknown error");
+            options.SetDefaultExceptionResponse((int)OrderErrorCodes.UnknownError, "Unknown error");
         }
 
         public static void CreateOrderCommandMap(CommandExceptionHandlingOptions options)

@@ -7,29 +7,29 @@ using AutoMapper;
 
 using Microsoft.AspNetCore.Mvc;
 
-using Rds.Cqrs.Commands;
 using Rds.Cqrs.Queries;
 
 using Shop.DataProjections.Queries;
 using Shop.Domain.Commands.Cart;
+using Shop.Services.Common;
 using Shop.Web.Models;
 
 namespace Shop.Web.Controllers
 {
     public class CartController : Controller
     {
-        private readonly ICommandProcessor _commandProcessor;
         private readonly IQueryService _queryService;
         private readonly IMapper _mapper;
+        private readonly IServiceClient _serviceClient;
 
         public CartController(
-            ICommandProcessor commandProcessor,
             IQueryService queryService, 
-            IMapper mapper)
+            IMapper mapper, 
+            IServiceClient serviceClient)
         {
-            _commandProcessor = commandProcessor;
             _queryService = queryService;
             _mapper = mapper;
+            _serviceClient = serviceClient;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -46,7 +46,7 @@ namespace Shop.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Add(AddToCartModel addToCart, CancellationToken cancellationToken)
         {
-            await _commandProcessor.ProcessAsync(
+            await _serviceClient.ProcessAsync(
                 new AddOrUpdateProductInCart(
                     Guid.NewGuid(), 
                     addToCart.ProductId,
@@ -59,7 +59,7 @@ namespace Shop.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(DeleteFromCartModel deleteFromCart, CancellationToken cancellationToken)
         {
-            await _commandProcessor.ProcessAsync(
+            await _serviceClient.ProcessAsync(
                 new DeleteProductFromCart(
                     Guid.NewGuid(),
                     deleteFromCart.ProductId,

@@ -16,15 +16,16 @@ using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.Options;
 
 using Rds.Cqrs.Commands;
-using Rds.Cqrs.Events;
 using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
+
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
+using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 using Shop.Infrastructure;
 using Shop.Services.Common;
-using Shop.Web.Models;
+
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Web
@@ -59,7 +60,7 @@ namespace Shop.Web
                         classes => classes
                             .AssignableTo(typeof(IQueryHandler<,>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -67,7 +68,7 @@ namespace Shop.Web
                         classes => classes
                             .AssignableTo(typeof(IResultingCommandHandler<,>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -75,7 +76,7 @@ namespace Shop.Web
                         classes => classes
                             .AssignableTo(typeof(ICommandHandler<>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
 
@@ -94,17 +95,14 @@ namespace Shop.Web
         {
             services.AddServiceClient(mapper =>
                 mapper
-                
-                //Commands
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
-                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceCommandQueue)
-                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceCommandQueue)
+                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
 
-                //Saga
-                //    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
-                //    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
-                //    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+                    .Map<AddOrUpdateProductInCart>(ServicesQueues.CartServiceCommandsQueue)
+                    .Map<DeleteProductFromCart>(ServicesQueues.CartServiceCommandsQueue)
             );
+
             services.AddMassTransit();
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>

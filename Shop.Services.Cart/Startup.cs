@@ -1,9 +1,6 @@
 ﻿using System;
-using Automatonymous;
 using AutoMapper;
 using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration.Saga;
-using MassTransit.Saga;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -11,21 +8,19 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-
 using Rds.Cqrs.Commands;
 using Rds.Cqrs.Microsoft.DependencyInjection;
 using Rds.Cqrs.Queries;
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
+using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
-using Shop.Domain.Events;
 using Shop.Infrastructure;
 using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
-using Shop.Services.Order.Sagas;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
-namespace Shop.Services.Order
+namespace Shop.Services.Cart
 {
     public class Startup
     {
@@ -37,18 +32,24 @@ namespace Shop.Services.Order
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
-            services.AddEntityFrameworkSqlServer().AddDbContext<ShopDbContext>((provider, builder) =>
-                builder.UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
-                   .UseInternalServiceProvider(provider), ServiceLifetime.Transient);
+            services
+                .AddEntityFrameworkSqlServer()
+                .AddDbContext<ShopDbContext>(
+                    (provider, builder) =>
+                        builder
+                            .UseSqlServer(Configuration.GetConnectionString("ShopConnection"))
+                            .UseInternalServiceProvider(provider),
+                    ServiceLifetime.Transient);
 
             services.AddAutoMapper();
-
             services.AddRdsCqrs();
+
+            AddServiceBus(services);
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -56,7 +57,7 @@ namespace Shop.Services.Order
                         classes => classes
                             .AssignableTo(typeof(IQueryHandler<,>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -64,7 +65,7 @@ namespace Shop.Services.Order
                         classes => classes
                             .AssignableTo(typeof(IResultingCommandHandler<,>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+                    .WithTransientLifetime());
 
             services.Scan(scan =>
                 scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -72,59 +73,24 @@ namespace Shop.Services.Order
                         classes => classes
                             .AssignableTo(typeof(ICommandHandler<>)))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(typeof(OrderSaga).Assembly)
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(SagaStateMachine<>)))
-                    .AsImplementedInterfaces()
                     .WithTransientLifetime());
 
-            AddServiceBus(services);
-
-            services.AddSingleton<IFakeMailService, FakeMailService>();
-
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
-        }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseMvc();
+            return services.BuildServiceProvider();
         }
 
         private void AddServiceBus(IServiceCollection services)
         {
-            AddSagaRepository(services);
-
             services.AddServices(srvCfg =>
             {
                 srvCfg
-
                     .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceSagaQueue,
-                        consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
-
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceEventsQueue,
+                        ServicesQueues.CartServiceCommandsQueue,
                         consumeCfg => consumeCfg
-                            .AddEventConsumer<OrderCreated>())
-
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceCommandQueue,
-                        consumeCfg => consumeCfg
-                            .AddCommandConsumer<AddOrderContactsCommand>()
-                            .AddCommandConsumer<PayOrderCommand>()
-                            .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings
-                                .CreateOrderCommandMap),
-                        ExceptionResponseMappings.DefaultOrderServiceMap);
+                            .AddCommandConsumer<AddOrUpdateProductInCart>()
+                            .AddCommandConsumer<DeleteProductFromCart>(),
+                        x => x.SetDefaultExceptionResponse(0, "Unknown error"));
             });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
@@ -136,18 +102,27 @@ namespace Shop.Services.Order
                     h.Username(rabbitConfig.User);
                     h.Password(rabbitConfig.Password);
                 });
-                
+
                 cfg.LoadServices(provider, host);
             }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
         }
 
-        private void AddSagaRepository(IServiceCollection services)
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            services.AddTransient<ISagaRepository<OrderSagaContext>>(provider =>
-                new EntityFrameworkSagaRepository<OrderSagaContext>(provider.GetRequiredService<ShopDbContext>,
-                    optimistic: true));
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseMvc();
         }
     }
 }
