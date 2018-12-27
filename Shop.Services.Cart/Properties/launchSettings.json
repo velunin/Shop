@@ -1,9 +1,9 @@
-{
+﻿{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:51087/",
+      "applicationUrl": "http://localhost:57590/",
       "sslPort": 0
     }
   },
@@ -19,14 +19,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:5001/"
-    },
-    "Shop Development Second Instance": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "http://localhost:5002/"
+      "applicationUrl": "http://localhost:6001/"
     }
   }
 }

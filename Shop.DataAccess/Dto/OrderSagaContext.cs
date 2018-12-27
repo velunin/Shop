@@ -30,5 +30,36 @@ namespace Shop.DataAccess.Dto
         public string Email { get; set; }
 
         public string Phone { get; set; }
+
+        public string CreateOrderRequestIdentity { get; set; }
+
+        public void SetCreateOrderRequestIdentity(Guid? requestId, string responseAddress)
+        {
+            if (requestId.HasValue)
+            {
+                CreateOrderRequestIdentity = $"{responseAddress}|{requestId}";
+            }
+        }
+
+        public (Guid?,string) GetCreateOrderRequestIdentity()
+        {
+            if (!string.IsNullOrEmpty(CreateOrderRequestIdentity))
+            {
+                var requestIdentityPair = CreateOrderRequestIdentity.Split('|');
+
+                if (requestIdentityPair != null && requestIdentityPair.Length > 0)
+                {
+                    var responseAddress = requestIdentityPair[0];
+                    var requestIdStr = requestIdentityPair[1];
+
+                    if (Guid.TryParse(requestIdStr, out var requestId))
+                    {
+                        return (requestId, responseAddress);
+                    }
+                } 
+            }
+
+            return (null, null);
+        }
     }
 }

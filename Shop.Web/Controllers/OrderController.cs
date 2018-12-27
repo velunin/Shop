@@ -5,9 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using AutoMapper;
-
 using Microsoft.AspNetCore.Mvc;
-using Rds.Cqrs.Commands;
 using Rds.Cqrs.Queries;
 
 using Shop.DataProjections.Queries;
@@ -22,19 +20,16 @@ namespace Shop.Web.Controllers
     {
         private readonly IQueryService _queryService;
         private readonly IServiceClient _serviceClient;
-        private readonly ICommandProcessor _commandProcessor;
         private readonly IMapper _mapper;
 
         public OrderController(
             IQueryService queryService, 
             IMapper mapper,
-            IServiceClient serviceClient, 
-            ICommandProcessor commandProcessor)
+            IServiceClient serviceClient)
         {
             _queryService = queryService;
             _mapper = mapper;
             _serviceClient = serviceClient;
-            _commandProcessor = commandProcessor;
         }
 
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -52,27 +47,18 @@ namespace Shop.Web.Controllers
 
                 var orderId = Guid.NewGuid();
 
-                await _commandProcessor.ProcessAsync(
-                    new CreateOrderCommand(
-                        orderId,
-                        orderItems),
-                    cancellationToken);
-
-                #region OverServiceBus
                 try
                 {
-                    //await _serviceClient.ProcessAsync(
-                    //        new CreateOrderCommand(
-                    //            orderId,
-                    //            orderItems),
-                    //        TimeSpan.FromSeconds(5),
-                    //        cancellationToken);
+                    await _serviceClient.ProcessAsync(
+                            new CreateOrderCommand(
+                                orderId,
+                                orderItems),
+                            cancellationToken);
                 }
                 catch (ServiceException ex)
                 {
                     throw new Exception($"{ex.ErrorCode} - {ex.Message}");
                 }
-                #endregion
 
                 return RedirectToAction("Contacts", new
                 {
@@ -96,10 +82,13 @@ namespace Shop.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Contacts(AddOrderContactModel model, CancellationToken cancellationToken)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                return View(model);
+            }
 
-                await _commandProcessor.ProcessAsync(
+            await _serviceClient
+                .ProcessAsync(
                     new AddOrderContactsCommand(
                         model.OrderId,
                         model.Name,
@@ -107,22 +96,10 @@ namespace Shop.Web.Controllers
                         model.Phone),
                     cancellationToken);
 
-                //await _serviceClient
-                //    .ProcessAsync(
-                //        new AddOrderContactsCommand(
-                //            model.OrderId,
-                //            model.Name,
-                //            model.Email,
-                //            model.Phone),
-                //        cancellationToken);
-
-                return RedirectToAction("Payment", new
-                {
-                    model.OrderId
-                });
-            }
-
-            return View(model);
+            return RedirectToAction("Payment", new
+            {
+                model.OrderId
+            });
         }
 
         public IActionResult Payment(Guid orderId)
@@ -133,20 +110,16 @@ namespace Shop.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Payment(PaymentModel model, CancellationToken cancellationToken)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var result =
-                    await _commandProcessor.ProcessAsync(
-                        new PayOrderCommand(model.OrderId),
-                        cancellationToken);
-
-                //   var result = await _serviceClient.ProcessAsync<PayOrderCommand, PayOrderResult>(
-                //            new PayOrderCommand(model.OrderId),
-                //            TimeSpan.FromSeconds(5),
-                //            cancellationToken);
-
-                model.Message = result.Message;
+                return View(model);
             }
+
+            var result = await _serviceClient.ProcessAsync<PayOrderCommand, PayOrderResult>(
+                new PayOrderCommand(model.OrderId),
+                cancellationToken);
+
+            model.Message = result.Message;
 
             return View(model);
         }
@@ -168,11 +141,10 @@ namespace Shop.Web.Controllers
                     new GetCartItems(HttpContext.Session.Id),
                     cancellationToken);
 
-            var model = new CheckoutViewModel
+            return new CheckoutViewModel
             {
                 CartItems = _mapper.Map<IEnumerable<CartItemModel>>(cartItems)
             };
-            return model;
         }
     }
 }

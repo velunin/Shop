@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-
 using GreenPipes;
-
 using MassTransit;
-
 using Rds.Cqrs.Commands;
 using Rds.Cqrs.Events;
-using Shop.Infrastructure.Extensions;
 using Shop.Infrastructure.Messaging;
 using Shop.Services.Common.MessageContracts;
 
-namespace Shop.Infrastructure
+namespace Shop.Infrastructure.Extensions
 {
     public static class ConsumersConfigurationExtensions
     {
