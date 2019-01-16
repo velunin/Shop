@@ -15,15 +15,14 @@ using MassTransit.ExtensionsDependencyInjectionIntegration;
 
 using Microsoft.Extensions.Options;
 
-using Rds.Cqrs.Commands;
 using Rds.Cqrs.Microsoft.DependencyInjection;
-using Rds.Cqrs.Queries;
 
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 using Shop.Infrastructure;
+using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
 
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
@@ -51,32 +50,11 @@ namespace Shop.Web
 
             services.AddAutoMapper();
             services.AddRdsCqrs();
+            services.AddCommandAndQueryHandlers(
+                AppDomain.CurrentDomain.GetAssemblies(),
+                ServiceLifetime.Scoped);
 
-            AddServiceBus(services);
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IQueryHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IResultingCommandHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(ICommandHandler<>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
+            RegisterServiceBus(services);
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
 
@@ -91,7 +69,7 @@ namespace Shop.Web
             return services.BuildServiceProvider();
         }
 
-        private void AddServiceBus(IServiceCollection services)
+        private void RegisterServiceBus(IServiceCollection services)
         {
             services.AddServiceClient(mapper =>
                 mapper

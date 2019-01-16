@@ -18,6 +18,7 @@ using Shop.Domain.Commands.Order;
 using Shop.Infrastructure;
 using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
+using Shop.Services.Common.ErrorCodes;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Cart
@@ -48,39 +49,18 @@ namespace Shop.Services.Cart
 
             services.AddAutoMapper();
             services.AddRdsCqrs();
+            services.AddCommandAndQueryHandlers(
+                AppDomain.CurrentDomain.GetAssemblies(),
+                ServiceLifetime.Scoped);
 
-            AddServiceBus(services);
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IQueryHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IResultingCommandHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(ICommandHandler<>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
+            RegisterServiceBus(services);
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
 
             return services.BuildServiceProvider();
         }
 
-        private void AddServiceBus(IServiceCollection services)
+        private void RegisterServiceBus(IServiceCollection services)
         {
             services.AddServices(srvCfg =>
             {
@@ -90,7 +70,9 @@ namespace Shop.Services.Cart
                         consumeCfg => consumeCfg
                             .AddCommandConsumer<AddOrUpdateProductInCart>()
                             .AddCommandConsumer<DeleteProductFromCart>(),
-                        x => x.SetDefaultExceptionResponse(0, "Unknown error"));
+                        x => x.SetDefaultExceptionResponse(
+                            (int)CartErrorCodes.UnknownError, 
+                            "Unknown cart error"));
             });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>

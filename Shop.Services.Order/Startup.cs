@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using Automatonymous;
 using AutoMapper;
+using GreenPipes.Internals.Extensions;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration.Saga;
 using MassTransit.Saga;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-using Rds.Cqrs.Commands;
 using Rds.Cqrs.Microsoft.DependencyInjection;
-using Rds.Cqrs.Queries;
+
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
-using Shop.Domain.Commands.Order;
-using Shop.Domain.Events;
 using Shop.Infrastructure;
 using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
@@ -50,39 +51,11 @@ namespace Shop.Services.Order
 
             services.AddRdsCqrs();
 
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IQueryHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithScopedLifetime());
+            services.AddCommandAndQueryHandlers(
+                AppDomain.CurrentDomain.GetAssemblies(), 
+                ServiceLifetime.Scoped);
 
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IResultingCommandHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithScopedLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(ICommandHandler<>)))
-                    .AsImplementedInterfaces()
-                    .WithScopedLifetime());
-
-            services.Scan(scan =>
-                scan.FromAssemblies(typeof(OrderSaga).Assembly)
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(SagaStateMachine<>)))
-                    .AsImplementedInterfaces()
-                    .WithTransientLifetime());
-
-            AddServiceBus(services);
+            RegisterServiceBus(services);
 
             services.AddSingleton<IFakeMailService, FakeMailService>();
 
@@ -100,31 +73,23 @@ namespace Shop.Services.Order
             app.UseMvc();
         }
 
-        private void AddServiceBus(IServiceCollection services)
+        private void RegisterServiceBus(IServiceCollection services)
         {
-            AddSagaRepository(services);
+            services.AddSagaStateMachines(
+                GetType().Assembly,
+                ServiceLifetime.Transient);
+
+            services.AddSingleton<ISagaRepository<OrderSagaContext>>(provider =>
+                new EntityFrameworkSagaRepository<OrderSagaContext>(
+                    provider.GetRequiredService<ShopDbContext>,
+                    optimistic: true));
 
             services.AddServices(srvCfg =>
             {
                 srvCfg
-
                     .AddServiceEndpoint(
                         ServicesQueues.OrderServiceSagaQueue,
-                        consumeCfg => consumeCfg.AddSaga<OrderSagaContext>())
-
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceEventsQueue,
-                        consumeCfg => consumeCfg
-                            .AddEventConsumer<OrderCreated>())
-
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceCommandQueue,
-                        consumeCfg => consumeCfg
-                            .AddCommandConsumer<AddOrderContactsCommand>()
-                            .AddCommandConsumer<PayOrderCommand>()
-                            .AddCommandConsumer<CreateOrderCommand>(ExceptionResponseMappings
-                                .CreateOrderCommandMap),
-                        ExceptionResponseMappings.DefaultOrderServiceMap);
+                        consumeCfg => consumeCfg.AddSaga<OrderSagaContext>());
             });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
@@ -141,13 +106,6 @@ namespace Shop.Services.Order
             }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
-        }
-
-        private void AddSagaRepository(IServiceCollection services)
-        {
-            services.AddTransient<ISagaRepository<OrderSagaContext>>(provider =>
-                new EntityFrameworkSagaRepository<OrderSagaContext>(provider.GetRequiredService<ShopDbContext>,
-                    optimistic: true));
         }
     }
 }
