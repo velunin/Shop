@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.1" />
-    <PackageReference Include="Rds.Cqrs.Microsoft.DependencyInjection" Version="1.0.3" />
     <PackageReference Include="Scrutor" Version="3.0.1" />
   </ItemGroup>
 

@@ -9,10 +9,10 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
-    <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
   </ItemGroup>
 

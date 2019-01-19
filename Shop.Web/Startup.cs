@@ -15,8 +15,6 @@ using MassTransit.ExtensionsDependencyInjectionIntegration;
 
 using Microsoft.Extensions.Options;
 
-using Rds.Cqrs.Microsoft.DependencyInjection;
-
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
@@ -49,7 +47,7 @@ namespace Shop.Web
                     .UseInternalServiceProvider(provider), ServiceLifetime.Transient);
 
             services.AddAutoMapper();
-            services.AddRdsCqrs();
+            services.AddCqrs();
             services.AddCommandAndQueryHandlers(
                 AppDomain.CurrentDomain.GetAssemblies(),
                 ServiceLifetime.Scoped);

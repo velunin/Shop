@@ -6,7 +6,10 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 
 using Shop.DataAccess.Dto;
 using Shop.Domain.Commands.Cart;

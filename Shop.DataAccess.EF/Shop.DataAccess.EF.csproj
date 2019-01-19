@@ -6,10 +6,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.1" />
-    <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.DataProjections\Shop.DataProjections.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />

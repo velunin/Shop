@@ -8,7 +8,7 @@ using MassTransit;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 
 using Shop.DataAccess.Dto;
 using Shop.Services.Common.MessageContracts;

@@ -7,7 +7,7 @@ using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
 
-using Rds.Cqrs.Queries;
+using Shop.Cqrs.Queries;
 using Shop.DataProjections.Models;
 using Shop.DataProjections.Queries;
 

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using MassTransit;
 
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 
 using Shop.DataProjections.Models;
 using Shop.Domain.Commands.Order;

@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Events;
 

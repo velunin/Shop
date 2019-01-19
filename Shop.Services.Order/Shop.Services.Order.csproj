@@ -23,8 +23,6 @@
     <PackageReference Include="MassTransit.RabbitMQ" Version="5.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
-    <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
-    <PackageReference Include="Rds.Cqrs.Microsoft.DependencyInjection" Version="1.0.3" />
     <PackageReference Include="Scrutor" Version="3.0.1" />
   </ItemGroup>
 
@@ -33,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.DataAccess.EF\Shop.DataAccess.EF.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />

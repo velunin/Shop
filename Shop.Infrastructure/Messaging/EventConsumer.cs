@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using MassTransit;
-using Rds.Cqrs.Events;
+using Shop.Cqrs.Events;
 
 namespace Shop.Infrastructure.Messaging
 {

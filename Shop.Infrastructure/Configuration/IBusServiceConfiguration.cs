@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using MassTransit.Saga;
-using Rds.Cqrs.Commands;
-using Rds.Cqrs.Events;
+using Shop.Cqrs.Commands;
+using Shop.Cqrs.Events;
 
 namespace Shop.Infrastructure.Configuration
 {

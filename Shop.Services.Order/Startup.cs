@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
-using Automatonymous;
 using AutoMapper;
-using GreenPipes.Internals.Extensions;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration.Saga;
 using MassTransit.Saga;
@@ -16,14 +12,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-using Rds.Cqrs.Microsoft.DependencyInjection;
-
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Infrastructure;
 using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
-using Shop.Services.Order.Sagas;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Order
@@ -49,7 +42,7 @@ namespace Shop.Services.Order
 
             services.AddAutoMapper();
 
-            services.AddRdsCqrs();
+            services.AddCqrs();
 
             services.AddCommandAndQueryHandlers(
                 AppDomain.CurrentDomain.GetAssemblies(), 

@@ -5,7 +5,7 @@ using MassTransit;
 
 using Microsoft.EntityFrameworkCore;
 
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 
 using Shop.DataProjections.Models;
 using Shop.Domain.Commands.Order;
@@ -14,7 +14,7 @@ using Shop.Domain.Events;
 
 namespace Shop.DataAccess.EF.CommandHandlers.Order
 {
-    public class PayOrderHandler : IResultingCommandHandler<PayOrderCommand, PayOrderResult>
+    public class PayOrderHandler : ICommandHandler<PayOrderCommand, PayOrderResult>
     {
         private readonly IBus _bus;
         private readonly ShopDbContext _dbContext;

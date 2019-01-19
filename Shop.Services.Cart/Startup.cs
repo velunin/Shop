@@ -1,6 +1,9 @@
 ﻿using System;
+
 using AutoMapper;
+
 using MassTransit;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -8,13 +11,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Rds.Cqrs.Commands;
-using Rds.Cqrs.Microsoft.DependencyInjection;
-using Rds.Cqrs.Queries;
+
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
-using Shop.Domain.Commands.Order;
 using Shop.Infrastructure;
 using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
@@ -48,7 +48,7 @@ namespace Shop.Services.Cart
                     ServiceLifetime.Transient);
 
             services.AddAutoMapper();
-            services.AddRdsCqrs();
+            services.AddCqrs();
             services.AddCommandAndQueryHandlers(
                 AppDomain.CurrentDomain.GetAssemblies(),
                 ServiceLifetime.Scoped);

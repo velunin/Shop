@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 
 namespace Shop.Services.Common
 {

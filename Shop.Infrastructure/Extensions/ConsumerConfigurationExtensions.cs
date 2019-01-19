@@ -3,8 +3,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using GreenPipes;
 using MassTransit;
-using Rds.Cqrs.Commands;
-using Rds.Cqrs.Events;
+using Shop.Cqrs.Commands;
+using Shop.Cqrs.Events;
 using Shop.Infrastructure.Messaging;
 using Shop.Services.Common.MessageContracts;
 

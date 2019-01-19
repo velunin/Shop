@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 using Shop.Services.Common.MessageContracts;
 
 namespace Shop.Infrastructure.Messaging

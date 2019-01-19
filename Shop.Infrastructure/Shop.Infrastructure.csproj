@@ -10,11 +10,11 @@
     <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="5.1.4" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="5.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.1.1" />
-    <PackageReference Include="Rds.Cqrs" Version="1.0.3" />
     <PackageReference Include="Scrutor" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
     <ProjectReference Include="..\Shop.Services.Common\Shop.Services.Common.csproj" />
   </ItemGroup>

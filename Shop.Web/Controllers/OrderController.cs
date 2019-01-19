@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Rds.Cqrs.Queries;
+using Shop.Cqrs.Queries;
 
 using Shop.DataProjections.Queries;
 using Shop.Domain.Commands.Order;

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using GreenPipes;
 using GreenPipes.Configurators;
 using MassTransit;
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 using Shop.Infrastructure.Messaging;
 using Shop.Services.Common.MessageContracts;
 

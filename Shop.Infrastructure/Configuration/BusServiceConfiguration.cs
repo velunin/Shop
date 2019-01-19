@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using MassTransit.Saga;
 using Microsoft.Extensions.DependencyInjection;
-using Rds.Cqrs.Commands;
-using Rds.Cqrs.Events;
+using Shop.Cqrs.Commands;
+using Shop.Cqrs.Events;
 using Shop.Infrastructure.Messaging;
 using Shop.Services.Common.MessageContracts;
 

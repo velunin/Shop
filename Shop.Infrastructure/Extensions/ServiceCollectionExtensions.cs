@@ -3,8 +3,8 @@ using System.Reflection;
 using Automatonymous;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.DependencyInjection;
-using Rds.Cqrs.Commands;
-using Rds.Cqrs.Queries;
+using Shop.Cqrs.Commands;
+using Shop.Cqrs.Queries;
 using Shop.Infrastructure.Configuration;
 
 namespace Shop.Infrastructure.Extensions
@@ -42,7 +42,7 @@ namespace Shop.Infrastructure.Extensions
                 scan.FromAssemblies(fromAssemblies)
                     .AddClasses(
                         classes => classes
-                            .AssignableTo(typeof(IResultingCommandHandler<,>)))
+                            .AssignableTo(typeof(ICommandHandler<,>)))
                     .AsImplementedInterfaces()
                     .WithLifetime(lifetime));
 
@@ -83,6 +83,11 @@ namespace Shop.Infrastructure.Extensions
             ServiceLifetime lifetime)
         {
             serviceCollection.AddSagaStateMachines(new []{fromAssembly}, lifetime);
+        }
+
+        public static void AddCqrs(this IServiceCollection serviceCollection)
+        {
+            //serviceCollection.AddSingleton<ICommand
         }
     }
 }

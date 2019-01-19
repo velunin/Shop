@@ -7,7 +7,7 @@ using MassTransit;
 
 using Microsoft.Extensions.Logging;
 
-using Rds.Cqrs.Commands;
+using Shop.Cqrs.Commands;
 
 using Shop.DataAccess.Dto;
 using Shop.Domain.Commands.Order;
