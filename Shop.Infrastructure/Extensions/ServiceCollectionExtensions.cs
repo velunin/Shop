@@ -3,7 +3,9 @@ using System.Reflection;
 using Automatonymous;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.DependencyInjection;
+using Shop.Cqrs;
 using Shop.Cqrs.Commands;
+using Shop.Cqrs.Events;
 using Shop.Cqrs.Queries;
 using Shop.Infrastructure.Configuration;
 
@@ -95,7 +97,10 @@ namespace Shop.Infrastructure.Extensions
 
         public static void AddCqrs(this IServiceCollection serviceCollection)
         {
-            //serviceCollection.AddSingleton<ICommand
+            serviceCollection.AddSingleton<IHandlerResolver, CqrsServiceCollectionHandlerResolver>();
+            serviceCollection.AddSingleton<ICommandProcessor, CommandProcessor>();
+            serviceCollection.AddSingleton<IQueryService, QueryService>();
+            serviceCollection.AddSingleton<IEventDispatcher, EventDispatcher>();
         }
     }
 }
