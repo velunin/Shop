@@ -50,7 +50,7 @@ namespace Shop.Web
             services.AddCqrs();
             services.AddCommandAndQueryHandlers(
                 AppDomain.CurrentDomain.GetAssemblies(),
-                ServiceLifetime.Scoped);
+                ServiceLifetime.Transient);
 
             RegisterServiceBus(services);
 

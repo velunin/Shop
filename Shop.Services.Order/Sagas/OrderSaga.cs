@@ -121,9 +121,10 @@ namespace Shop.Services.Order.Sagas
                                 .ConfigureAwait(false);
                         }
 
-                        //Do some compensative logic
+                        //Do some compensate logic
                     })
                     .TransitionTo(OrderCreationError),
+
                 When(OrderCreatingUnknownErrorEvent)
                     .ThenAsync(async context =>
                     {
@@ -144,7 +145,7 @@ namespace Shop.Services.Order.Sagas
                                 .ConfigureAwait(false);
                         }
 
-                        //Do some compensative logic
+                        //Do some compensate logic
                     })
                     .TransitionTo(OrderCreationError));
 

@@ -27,13 +27,6 @@ namespace Shop.Infrastructure.Extensions
             serviceCollection.AddSingleton<IBusServiceEndpointsConfiguration>(busServiceEndpointsConfigurator);
         }
 
-        public static void ConfigureAsService(
-            this IServiceCollection serviceCollection, 
-            string serviceName, 
-            Action<IServiceCollectionConfigurator> configureServiceCollection = null)
-        {
-            serviceCollection.AddMassTransit(configureServiceCollection);
-        }
 
         public static void AddCommandAndQueryHandlers(
             this IServiceCollection serviceCollection,
