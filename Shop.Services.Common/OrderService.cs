@@ -4,42 +4,31 @@ using Shop.Domain.Commands.Order;
 
 namespace Shop.Services.Common
 {
-    public class CartServiceMap
+    public class CartServiceMap : IServiceMap
     {
-        public Queue<CommandsQueueMap> CartServiceCommands;
+        public CommandsQueueMap CartServiceCommands;
 
-        public class CommandsQueueMap
+        public class CommandsQueueMap : IQueueMap
         {
-            public Command<AddOrUpdateProductInCart> AddOrUpdateProductInCart;
-            public Command<DeleteProductFromCart> DeleteProductFromCart;
+            public AddOrUpdateProductInCart AddOrUpdateProductInCart;
+            public DeleteProductFromCart DeleteProductFromCart;
         }
     }
 
-    public class OrderServiceMap
+    public class OrderServiceMap : IServiceMap
     {
-        public Queue<SagaQueue> OrderServiceSaga;
+        public SagaQueue OrderServiceSaga;
 
-        public class SagaQueue
+        public class SagaQueue : IQueueMap
         {
-            public Command<CreateOrderCommand> CreateOrderCommand;
-            public Command<AddOrderContactsCommand> AddOrderContactCommand;
-            public Command<PayOrderCommand> PayOrderCommand;
+            public CreateOrderCommand CreateOrderCommand;
+            public AddOrderContactsCommand AddOrderContactCommand;
+            public PayOrderCommand PayOrderCommand;
         }
     }
 
-    public class Service<TServiceMap> : IService
-    {
-    }
 
-    public class Queue<TQueueMap> : IQueue
-    {
-    }
+    public interface IServiceMap { }
 
-    public class Command<TCommand> where TCommand : ICommand
-    {
-    }
-
-    public interface IService { }
-
-    public interface IQueue { }
+    public interface IQueueMap { }
 }
