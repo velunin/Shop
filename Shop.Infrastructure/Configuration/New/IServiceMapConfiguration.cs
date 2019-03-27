@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using MassTransit.RabbitMqTransport;
 using Shop.Services.Common;
 
 namespace Shop.Infrastructure.Configuration.New
 {
-    public interface IServiceSetConfiguration
+    public interface ICompositionServiceConfiguration
     {
         void AddService<TService>(
             Action<IServiceConfiguration<TService>> configureService = null, 
@@ -22,9 +25,15 @@ namespace Shop.Infrastructure.Configuration.New
         void AsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap;
     }
 
-    public interface IServiceConfigurator
+    public interface IRabbitMqBusServiceConfigurator
     {
-        void Configure();
+        void Configure(
+            IRabbitMqBusFactoryConfigurator busConfigurator, 
+            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
+    }
+
+    public interface IRabbitMqBusCompositionServiceConfigurator : IRabbitMqBusServiceConfigurator
+    {
     }
 
     public interface IQueueConfiguration
@@ -32,17 +41,27 @@ namespace Shop.Infrastructure.Configuration.New
         void ForCommand<TCommand>(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
     }
 
-    public class ServiceSetConfigurator : IServiceSetConfiguration
+    public interface IRabbitMqBusQueueConfigurator
     {
-        private readonly IDictionary<Type, IServiceConfigurator> _configureActionsForServices = new Dictionary<Type, IServiceConfigurator>();
+        void Configure(IRabbitMqReceiveEndpointConfigurator endpointConfigurator);
+    }
+
+    public class CompositionServiceConfigurator : ICompositionServiceConfiguration, IRabbitMqBusCompositionServiceConfigurator
+    {
+        private readonly IDictionary<Type, IRabbitMqBusServiceConfigurator> _serviceConfigurators =
+            new Dictionary<Type, IRabbitMqBusServiceConfigurator>();
+
+        private readonly IDictionary<Type, Action<CommandExceptionHandlingOptions>> _configureExceptionHandlingActions =
+            new Dictionary<Type, Action<CommandExceptionHandlingOptions>>();
 
         public void AddService<TService>(
-            Action<IServiceConfiguration<TService>> configureService = null, 
-            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) where TService : IServiceMap
+            Action<IServiceConfiguration<TService>> configureService = null,
+            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) 
+            where TService : IServiceMap
         {
             var serviceType = typeof(TService);
 
-            if (_configureActionsForServices.ContainsKey(serviceType))
+            if (_serviceConfigurators.ContainsKey(serviceType))
             {
                 throw new ArgumentException($"Configuration for '{serviceType}' already exist");
             }
@@ -51,26 +70,49 @@ namespace Shop.Infrastructure.Configuration.New
 
             configureService?.Invoke(serviceConfig);
 
-            _configureActionsForServices.Add(serviceType, serviceConfig);
-
-
-            throw new NotImplementedException();
+            _serviceConfigurators.Add(serviceType, serviceConfig);
+            _configureExceptionHandlingActions.Add(serviceType, configureExceptionHandling);
         }
 
-        public class ConfigureServiceActionBucket
+        public void Configure(
+            IRabbitMqBusFactoryConfigurator busConfigurator,
+            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
-            public Action<object> ConfigureServiceAction { get; set; }
+            foreach (var serviceConfiguratorEntry in _serviceConfigurators)
+            {
+                var composeConfigureHandlingActions = configureExceptionHandling;
+                var serviceConfigurator = serviceConfiguratorEntry.Value;
 
-            public Action<CommandExceptionHandlingOptions> ConfigureExceptionHandlingAction { get; set; }
+                if (_configureExceptionHandlingActions.TryGetValue(
+                    serviceConfiguratorEntry.Key, 
+                    out var configureExceptionHandlingForService))
+                {
+                    composeConfigureHandlingActions += configureExceptionHandlingForService;
+                }
+
+                serviceConfigurator.Configure(busConfigurator, composeConfigureHandlingActions);
+            }
         }
     }
 
-    public class ServiceConfiguration<TService> : IServiceConfigurator, IServiceConfiguration<TService> where TService : IServiceMap
+    public class ServiceConfiguration<TService> : IRabbitMqBusServiceConfigurator, IServiceConfiguration<TService> where TService : IServiceMap
     {
-        public void ForQueue<TQueue>(Expression<Func<TService, TQueue>> queueSelector,
+        private readonly IDictionary<string, IRabbitMqBusQueueConfigurator> _queuesConfigs =
+            new Dictionary<string, IRabbitMqBusQueueConfigurator>();
+
+        public void ForQueue<TQueue>(
+            Expression<Func<TService, TQueue>> queueSelector,
             Action<IQueueConfiguration> configureQueue = null,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) where TQueue : IQueueMap
         {
+            var queueType = typeof(TQueue);
+
+            var queueFields = queueType.GetFields(BindingFlags.Public).Where(f => f.FieldType.GetInterfaces().Any(i => i == typeof(IQueueMap)));
+
+
+
+
+
             throw new NotImplementedException();
         }
 
@@ -79,7 +121,22 @@ namespace Shop.Infrastructure.Configuration.New
             throw new NotImplementedException();
         }
 
-        public void Configure()
+        public void Configure(
+            IRabbitMqBusFactoryConfigurator busConfigurator, 
+            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class QueueConfiguration : IQueueConfiguration, IRabbitMqBusQueueConfigurator
+    {
+        public void ForCommand<TCommand>(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Configure(IRabbitMqReceiveEndpointConfigurator endpointConfigurator)
         {
             throw new NotImplementedException();
         }
