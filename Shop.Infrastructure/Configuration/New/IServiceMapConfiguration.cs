@@ -22,6 +22,11 @@ namespace Shop.Infrastructure.Configuration.New
         void AsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap;
     }
 
+    public interface IServiceConfigurator
+    {
+        void Configure();
+    }
+
     public interface IQueueConfiguration
     {
         void ForCommand<TCommand>(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
@@ -29,7 +34,7 @@ namespace Shop.Infrastructure.Configuration.New
 
     public class ServiceSetConfigurator : IServiceSetConfiguration
     {
-        private readonly IDictionary<Type, ConfigureServiceActionBucket> _configureActionsForServices = new Dictionary<Type, ConfigureServiceActionBucket>();
+        private readonly IDictionary<Type, IServiceConfigurator> _configureActionsForServices = new Dictionary<Type, IServiceConfigurator>();
 
         public void AddService<TService>(
             Action<IServiceConfiguration<TService>> configureService = null, 
@@ -44,17 +49,10 @@ namespace Shop.Infrastructure.Configuration.New
 
             var serviceConfig = new ServiceConfiguration<TService>();
 
-            if (!_configureActionsForServices.ContainsKey(serviceType))
-            {
-                _configureActionsForServices.Add(serviceType, new ConfigureServiceActionBucket
-                {
-                    ConfigureServiceAction = configureService != null
-                        ? new Action<object>(p => configureService((IServiceConfiguration<TService>) p))
-                        : null,
+            configureService?.Invoke(serviceConfig);
 
-                    ConfigureExceptionHandlingAction = configureExceptionHandling
-                });
-            }
+            _configureActionsForServices.Add(serviceType, serviceConfig);
+
 
             throw new NotImplementedException();
         }
@@ -67,7 +65,7 @@ namespace Shop.Infrastructure.Configuration.New
         }
     }
 
-    public class ServiceConfiguration<TService> : IServiceConfiguration<TService> where TService : IServiceMap
+    public class ServiceConfiguration<TService> : IServiceConfigurator, IServiceConfiguration<TService> where TService : IServiceMap
     {
         public void ForQueue<TQueue>(Expression<Func<TService, TQueue>> queueSelector,
             Action<IQueueConfiguration> configureQueue = null,
@@ -77,6 +75,11 @@ namespace Shop.Infrastructure.Configuration.New
         }
 
         public void AsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Configure()
         {
             throw new NotImplementedException();
         }
