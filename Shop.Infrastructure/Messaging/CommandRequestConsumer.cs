@@ -11,13 +11,16 @@ namespace Shop.Infrastructure.Messaging
         where TCommand : class, ICommand   
     {
         private readonly ICommandProcessor _commandProcessor;
+        private readonly IExceptionResponseResolver _exceptionResponseResolver;
         private readonly ILogger _logger;
 
         public CommandRequestConsumer(
-            ICommandProcessor commandProcessor, 
+            ICommandProcessor commandProcessor,
+            IExceptionResponseResolver exceptionResponseResolver,
             ILogger<CommandRequestConsumer<TCommand, TResult>> logger)
         {
             _commandProcessor = commandProcessor;
+            _exceptionResponseResolver = exceptionResponseResolver;
             _logger = logger;
         }
 
@@ -36,7 +39,8 @@ namespace Shop.Infrastructure.Messaging
                 }
                 else
                 {
-                    result = await _commandProcessor.ProcessAsync((IResultingCommand<TResult>) context.Message,
+                    result = await _commandProcessor.ProcessAsync(
+                            (IResultingCommand<TResult>) context.Message,
                             context.CancellationToken)
                         .ConfigureAwait(false);
                 }
@@ -45,8 +49,21 @@ namespace Shop.Infrastructure.Messaging
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Command consume error");
-                throw;
+                _logger.LogError(ex, "Command processing error");
+
+                if (_exceptionResponseResolver.TryResolveResponse(
+                    typeof(TCommand), 
+                    ex, 
+                    out var exceptionResponse))
+                {
+                    await context
+                        .RespondAsync(
+                            new CommandResponse<TResult>(
+                                exceptionResponse.Code,
+                                exceptionResponse.Message))
+                        .ConfigureAwait(false);
+                }
+                else throw;
             }
         }
 
