@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using MassTransit.RabbitMqTransport;
+using Shop.Cqrs.Commands;
 using Shop.Services.Common;
 
 namespace Shop.Infrastructure.Configuration.New
@@ -19,7 +21,7 @@ namespace Shop.Infrastructure.Configuration.New
     {
         void ForQueue<TQueue>(
             Expression<Func<TService, TQueue>> queueSelector,
-            Action<IQueueConfiguration> configureQueue = null,
+            Action<IQueueConfiguration<TQueue>> configureQueue = null,
             Action<CommandExceptionHandlingOptions> configure = null) where TQueue : IQueueMap;
 
         void AsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap;
@@ -28,7 +30,8 @@ namespace Shop.Infrastructure.Configuration.New
     public interface IRabbitMqBusServiceConfigurator
     {
         void Configure(
-            IRabbitMqBusFactoryConfigurator busConfigurator, 
+            IRabbitMqBusFactoryConfigurator busConfigurator,
+            IRabbitMqHost host,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
     }
 
@@ -36,9 +39,9 @@ namespace Shop.Infrastructure.Configuration.New
     {
     }
 
-    public interface IQueueConfiguration
+    public interface IQueueConfiguration<TQueue> where TQueue : IQueueMap
     {
-        void ForCommand<TCommand>(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
+        void ForCommand<TCommand>(Expression<Func<TQueue, TCommand>> commandSelector, Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
     }
 
     public interface IRabbitMqBusQueueConfigurator
@@ -50,8 +53,8 @@ namespace Shop.Infrastructure.Configuration.New
 
     public class CompositionServiceConfigurator : ICompositionServiceConfiguration, IRabbitMqBusCompositionServiceConfigurator
     {
-        private readonly IDictionary<Type, ServiceConfiguratorItem> _serviceConfigurators =
-            new Dictionary<Type, ServiceConfiguratorItem>();
+        private readonly IDictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)> _serviceConfigurators =
+            new Dictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>();
 
         public void AddService<TService>(
             Action<IServiceConfiguration<TService>> configureService = null,
@@ -70,52 +73,44 @@ namespace Shop.Infrastructure.Configuration.New
             configureService?.Invoke(serviceConfig);
 
             _serviceConfigurators.Add(
-                serviceType, 
-                new ServiceConfiguratorItem
-                {
-                    Configurator = serviceConfig,
-                    ConfigureExceptionHandling = configureExceptionHandling
-                });
+                serviceType,
+                (serviceConfig, configureExceptionHandling));
         }
 
         public void Configure(
             IRabbitMqBusFactoryConfigurator busConfigurator,
+            IRabbitMqHost host,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
             foreach (var serviceConfiguratorEntry in _serviceConfigurators)
             {
-                var serviceConfiguratorItem = serviceConfiguratorEntry.Value;
+                var (serviceConfiguratorItem, configureExceptionHanlingForService) = serviceConfiguratorEntry.Value;
                 
                 serviceConfiguratorItem
-                    .Configurator
                     .Configure(
-                        busConfigurator, 
-                        configureExceptionHandling + serviceConfiguratorItem.ConfigureExceptionHandling);
+                        busConfigurator,
+                        host,
+                        configureExceptionHandling + configureExceptionHanlingForService);
             }
-        }
-
-        public class ServiceConfiguratorItem
-        {
-            public IRabbitMqBusServiceConfigurator Configurator { get; set; }
-
-            public Action<CommandExceptionHandlingOptions> ConfigureExceptionHandling { get; set; }
         }
     }
 
     public class ServiceConfiguration<TService> : IRabbitMqBusServiceConfigurator, IServiceConfiguration<TService> where TService : IServiceMap
     {
-        private readonly IDictionary<string, QueueConfiguratorItem> _queuesConfigsOverrides =
-            new Dictionary<string, QueueConfiguratorItem>();
-
-        private readonly IDictionary<string, Action<CommandExceptionHandlingOptions>> _configureExceptionHandlingActions =
-            new Dictionary<string, Action<CommandExceptionHandlingOptions>>();
+        private readonly IDictionary<string, (QueueConfiguratorBase, Action<CommandExceptionHandlingOptions>)> _queuesConfigsOverrides =
+            new Dictionary<string, (QueueConfiguratorBase, Action<CommandExceptionHandlingOptions>)>();
 
         public void ForQueue<TQueue>(
             Expression<Func<TService, TQueue>> queueSelector,
-            Action<IQueueConfiguration> configureQueue = null,
+            Action<IQueueConfiguration<TQueue>> configureQueue = null,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) where TQueue : IQueueMap
         {
-            throw new NotImplementedException();
+            var queueConfiguration = new QueueConfiguration<TQueue>();
+            var queueName = ((MemberExpression) queueSelector.Body).Member.Name;
+
+            configureQueue?.Invoke(queueConfiguration);
+
+            _queuesConfigsOverrides.Add(queueName, (queueConfiguration,configureExceptionHandling));
         }
 
         public void AsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap
@@ -125,6 +120,7 @@ namespace Shop.Infrastructure.Configuration.New
 
         public void Configure(
             IRabbitMqBusFactoryConfigurator busConfigurator, 
+            IRabbitMqHost host,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
             var serviceType = typeof(TService);
@@ -137,36 +133,72 @@ namespace Shop.Infrastructure.Configuration.New
 
             foreach (var queueField in queueFields)
             {
+                var queueConfigurator = new QueueConfiguratorBase(queueField.FieldType);
                 var composeConfigureHandlingActions = configureExceptionHandling;
+
                 if (_queuesConfigsOverrides.TryGetValue(
                     queueField.Name, 
-                    out var configuratorItem))
+                    out var queueConfigOverrideEntry))
                 {
-                    configuratorItem.Configurator.Configure();
-                    composeConfigureHandlingActions += configureExceptionHandlingForQueue;
-                }
-            }
+                    var (queueConfiguratorOverride, commandExceptionHandlingForQueue) = queueConfigOverrideEntry;
+                    queueConfigurator = queueConfiguratorOverride;
 
-            throw new NotImplementedException();
+                    composeConfigureHandlingActions += commandExceptionHandlingForQueue;
+                }
+                
+                busConfigurator.ReceiveEndpoint(host, ExtractQueueName(queueField), e =>
+                {
+                    queueConfigurator.Configure(e, composeConfigureHandlingActions);
+                });
+            }
         }
 
-        public class QueueConfiguratorItem
+        private static string ExtractQueueName(MemberInfo fieldInfo)
         {
-            public IRabbitMqBusQueueConfigurator Configurator { get; set; }
-
-            public Action<CommandExceptionHandlingOptions> ConfigureExceptionHandling { get; set; }
+            return Regex.Replace(
+                    fieldInfo.Name,
+                    "([A-Z])", "-$0",
+                    RegexOptions.Compiled)
+                .Trim('-')
+                .ToLower();
         }
     }
 
-    public class QueueConfiguration : IQueueConfiguration, IRabbitMqBusQueueConfigurator
+    public class QueueConfiguration<TQueue> : QueueConfiguratorBase, IQueueConfiguration<TQueue> where TQueue : IQueueMap
     {
-        public void ForCommand<TCommand>(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        public void ForCommand<TCommand>(Expression<Func<TQueue,TCommand>> commandSelector, Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
             throw new NotImplementedException();
         }
 
-        public void Configure(IRabbitMqReceiveEndpointConfigurator endpointConfigurator, Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        public QueueConfiguration() : base(typeof(TQueue))
         {
+        }
+    }
+
+    public class QueueConfiguratorBase : IRabbitMqBusQueueConfigurator
+    {
+        private readonly Type _queueType;
+
+        public QueueConfiguratorBase(Type queueType)
+        {
+            _queueType = queueType;
+        }
+
+        public void Configure(
+            IRabbitMqReceiveEndpointConfigurator endpointConfigurator, 
+            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        {
+            var commandFields = _queueType.GetFields(BindingFlags.Public)
+                .Where(f => f
+                    .FieldType
+                    .GetInterfaces()
+                    .Any(i => i == typeof(ICommand)));
+
+            foreach (var commandField in commandFields)
+            {
+                
+            }
             throw new NotImplementedException();
         }
     }
