@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shop.Cqrs.Commands;
-using Shop.Infrastructure.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Shop.Infrastructure
 {
@@ -10,22 +7,20 @@ namespace Shop.Infrastructure
     {
         object CreateConsumer(Type commandType);
 
-        IEnumerable<Type> GetConsumerTypes(T)
     }
 
     public class ServiceCollectionCommandConsumerFactory : ICommandConsumerFactory
     {
-        public object CreateConsumer(Type commandType)
-        {
-            var commandResultTypes = commandType
-                .GetInterfaces()
-                .Where(i =>
-                    i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IResultingCommand<>))
-                .Select(i => i.GetGenericArguments().FirstOrDefault())
-                .ToList();
+        private readonly IServiceProvider _serviceProvider;
 
-            var consumerType = typeof(CommandRequestConsumer<,>).MakeGenericType(commandType)
-            throw new NotImplementedException();
+        public ServiceCollectionCommandConsumerFactory(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public object CreateConsumer(Type consumerType)
+        {
+            return _serviceProvider.GetRequiredService(consumerType);
         }
     }
 }
