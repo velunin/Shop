@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.DataProjections\Shop.DataProjections.csproj" />
+    <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
   </ItemGroup>
 
 </Project>

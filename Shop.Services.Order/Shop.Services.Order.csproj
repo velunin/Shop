@@ -35,7 +35,7 @@
     <ProjectReference Include="..\Shop.DataAccess.EF\Shop.DataAccess.EF.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
-    <ProjectReference Include="..\Shop.Infrastructure\Shop.Infrastructure.csproj" />
+    <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
   </ItemGroup>
 
 </Project>

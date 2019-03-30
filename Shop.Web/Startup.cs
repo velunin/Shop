@@ -9,7 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using AutoMapper;
-
+using MassInstance;
+using MassInstance.Client;
+using MassInstance.Extensions;
 using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 
@@ -19,8 +21,6 @@ using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
-using Shop.Infrastructure;
-using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
 
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;

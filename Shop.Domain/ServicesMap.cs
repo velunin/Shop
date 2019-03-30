@@ -1,8 +1,8 @@
-﻿using Shop.Cqrs.Commands;
+﻿using MassInstance.Configuration.ServiceMap;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 
-namespace Shop.Services.Common
+namespace Shop.Domain
 {
     public class CartServiceMap : IServiceMap
     {
@@ -26,9 +26,4 @@ namespace Shop.Services.Common
             public PayOrderCommand PayOrderCommand;
         }
     }
-
-
-    public interface IServiceMap { }
-
-    public interface IQueueMap { }
 }

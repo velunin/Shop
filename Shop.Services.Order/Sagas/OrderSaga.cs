@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Automatonymous;
-
+using MassInstance.MessageContracts;
 using MassTransit;
 
 using Microsoft.Extensions.Logging;
@@ -14,7 +14,6 @@ using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;
 using Shop.Domain.Events;
 using Shop.Services.Common.ErrorCodes;
-using Shop.Services.Common.MessageContracts;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 

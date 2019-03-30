@@ -1,5 +1,5 @@
 ﻿using System;
-using Shop.Infrastructure;
+using MassInstance;
 using Shop.Services.Common.ErrorCodes;
 
 namespace Shop.Services.Order

@@ -1,5 +1,8 @@
 ﻿using System;
 using AutoMapper;
+using MassInstance;
+using MassInstance.Client;
+using MassInstance.Extensions;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration.Saga;
 using MassTransit.Saga;
@@ -14,8 +17,6 @@ using Microsoft.Extensions.Options;
 
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
-using Shop.Infrastructure;
-using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 

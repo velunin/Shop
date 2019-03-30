@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.DataAccess.EF\Shop.DataAccess.EF.csproj" />
-    <ProjectReference Include="..\Shop.Infrastructure\Shop.Infrastructure.csproj" />
+    <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
   </ItemGroup>
 
   <ItemGroup>

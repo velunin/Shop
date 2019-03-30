@@ -1,7 +1,9 @@
 ﻿using System;
 
 using AutoMapper;
-
+using MassInstance;
+using MassInstance.Client;
+using MassInstance.Extensions;
 using MassTransit;
 
 using Microsoft.AspNetCore.Builder;
@@ -15,8 +17,6 @@ using Microsoft.Extensions.Options;
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
-using Shop.Infrastructure;
-using Shop.Infrastructure.Extensions;
 using Shop.Services.Common;
 using Shop.Services.Common.ErrorCodes;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using AutoMapper;
+using MassInstance.Client;
 using Microsoft.AspNetCore.Mvc;
 using Shop.Cqrs.Queries;
 

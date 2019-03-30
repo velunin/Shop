@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataAccess", "Shop.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataAccess.EF", "Shop.DataAccess.EF\Shop.DataAccess.EF.csproj", "{D4118D87-D494-4655-8A25-70557666983C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Infrastructure", "Shop.Infrastructure\Shop.Infrastructure.csproj", "{FAE72933-88DE-43AD-B5EE-0C7EEF6DD6B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassInstance", "MassInstance\MassInstance.csproj", "{FAE72933-88DE-43AD-B5EE-0C7EEF6DD6B2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataProjections", "Shop.DataProjections\Shop.DataProjections.csproj", "{EA942668-E036-4218-8549-A9B42DEB0986}"
 EndProject
