@@ -29,13 +29,4 @@
         public TResult Result { get; set; }
     }
 
-    public class EmptyResult
-    {
-    }
-
-    public enum CommandExecutionStatus
-    {
-        Ok,
-        Error
-    }
 }
