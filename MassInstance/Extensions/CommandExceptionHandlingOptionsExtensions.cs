@@ -11,7 +11,9 @@ namespace MassInstance.Extensions
 {
     public static class CommandConfigurationExtensions
     {
-        public static void UseCommandExceptionHandling(this IReceiveEndpointConfigurator configuration, Action<CommandExceptionHandlingOptions> setupAction = null)
+        public static void UseCommandExceptionHandling(
+            this IReceiveEndpointConfigurator configuration,
+            Action<CommandExceptionHandlingOptions> setupAction = null)
         {
             configuration.UseContextFilter(context =>
             {

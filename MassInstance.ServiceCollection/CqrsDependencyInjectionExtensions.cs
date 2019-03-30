@@ -1,36 +1,34 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using Automatonymous;
-using MassInstance.Configuration.Old;
-using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.DependencyInjection;
 using Shop.Cqrs;
 using Shop.Cqrs.Commands;
 using Shop.Cqrs.Events;
 using Shop.Cqrs.Queries;
 
-namespace MassInstance.Extensions
+namespace MassInstance.ServiceCollection
 {
-    public static class ServiceCollectionExtensions
+    public static class CqrsDependencyInjectionExtensions
     {
-        public static void AddServices(
-            this IServiceCollection serviceCollection, 
-            Action<IBusServiceEndpointsConfiguration> configureServiceEndpoints = null, 
-            Action<IServiceCollectionConfigurator> configureServiceCollection = null)
+        public static void AddCqrs(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddMassTransit(configureServiceCollection);
-
-            var busServiceEndpointsConfigurator = new BusServiceEndpointsConfiguration(serviceCollection);
-
-            configureServiceEndpoints?.Invoke(busServiceEndpointsConfigurator);
-
-            serviceCollection.AddSingleton<IBusServiceEndpointsConfiguration>(busServiceEndpointsConfigurator);
+            serviceCollection.AddSingleton<IHandlerResolver, CqrsServiceCollectionHandlerResolver>();
+            serviceCollection.AddSingleton<ICommandProcessor, CommandProcessor>();
+            serviceCollection.AddSingleton<IQueryService, QueryService>();
+            serviceCollection.AddSingleton<IEventDispatcher, EventDispatcher>();
         }
-
 
         public static void AddCommandAndQueryHandlers(
             this IServiceCollection serviceCollection,
-            Assembly[] fromAssemblies, 
+            Assembly fromAssembly,
+            ServiceLifetime lifetime)
+        {
+            serviceCollection.AddCommandAndQueryHandlers(new[] { fromAssembly }, lifetime);
+        }
+
+        public static void AddCommandAndQueryHandlers(
+            this IServiceCollection serviceCollection,
+            Assembly[] fromAssemblies,
             ServiceLifetime lifetime)
         {
             serviceCollection.Scan(scan =>
@@ -58,14 +56,6 @@ namespace MassInstance.Extensions
                     .WithLifetime(lifetime));
         }
 
-        public static void AddCommandAndQueryHandlers(
-            this IServiceCollection serviceCollection,
-            Assembly fromAssembly,
-            ServiceLifetime lifetime)
-        {
-            serviceCollection.AddCommandAndQueryHandlers(new []{fromAssembly}, lifetime);
-        }
-
         public static void AddSagaStateMachines(
             this IServiceCollection serviceCollection,
             Assembly[] fromAssemblies,
@@ -85,15 +75,7 @@ namespace MassInstance.Extensions
             Assembly fromAssembly,
             ServiceLifetime lifetime)
         {
-            serviceCollection.AddSagaStateMachines(new []{fromAssembly}, lifetime);
-        }
-
-        public static void AddCqrs(this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IHandlerResolver, CqrsServiceCollectionHandlerResolver>();
-            serviceCollection.AddSingleton<ICommandProcessor, CommandProcessor>();
-            serviceCollection.AddSingleton<IQueryService, QueryService>();
-            serviceCollection.AddSingleton<IEventDispatcher, EventDispatcher>();
+            serviceCollection.AddSagaStateMachines(new[] { fromAssembly }, lifetime);
         }
     }
 }
