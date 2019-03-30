@@ -4,6 +4,7 @@ using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
 using MassInstance.Extensions;
+using MassInstance.ServiceCollection;
 using MassTransit;
 
 using Microsoft.AspNetCore.Builder;

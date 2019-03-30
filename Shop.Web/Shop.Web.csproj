@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MassInstance.ServiceCollection\MassInstance.ServiceCollection.csproj" />
     <ProjectReference Include="..\Shop.DataAccess.EF\Shop.DataAccess.EF.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Shop.Cqrs;
 
-namespace MassInstance
+namespace MassInstance.ServiceCollection
 {
     internal class CqrsServiceCollectionHandlerResolver : IHandlerResolver
     {

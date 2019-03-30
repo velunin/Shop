@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
-using MassInstance.Extensions;
+using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 
@@ -21,8 +21,6 @@ using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
-using Shop.Services.Common;
-
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Web

@@ -1,11 +1,12 @@
 ﻿using System;
 using Automatonymous.Scoping;
 using MassInstance.Configuration.Old;
+using MassInstance.Extensions;
 using MassTransit.AutomatonymousExtensionsDependencyInjectionIntegration;
 using MassTransit.RabbitMqTransport;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MassInstance.Extensions
+namespace MassInstance.ServiceCollection
 {
     public static class LoadConsumersAndSagasExtensions
     {
