@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MassInstance.Cqrs.Commands;
+using MassInstance.Cqrs.Events;
 using MassInstance.MessageContracts;
 using MassInstance.Messaging;
 using MassTransit.Saga;
 using Microsoft.Extensions.DependencyInjection;
-using Shop.Cqrs.Commands;
-using Shop.Cqrs.Events;
 
 namespace MassInstance.Configuration.Old
 {

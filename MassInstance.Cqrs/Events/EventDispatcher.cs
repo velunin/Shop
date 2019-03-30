@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shop.Cqrs.Events
+namespace MassInstance.Cqrs.Events
 {
     public class EventDispatcher : IEventDispatcher
     {

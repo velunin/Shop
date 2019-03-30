@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using GreenPipes;
 using GreenPipes.Configurators;
+using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
 using MassInstance.Messaging;
 using MassTransit;
-using Shop.Cqrs.Commands;
 
 namespace MassInstance.Extensions
 {

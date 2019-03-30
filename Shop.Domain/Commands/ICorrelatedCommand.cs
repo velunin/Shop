@@ -1,5 +1,5 @@
 ﻿using System;
-using Shop.Cqrs.Commands;
+using MassInstance.Cqrs.Commands;
 
 namespace Shop.Domain.Commands
 {

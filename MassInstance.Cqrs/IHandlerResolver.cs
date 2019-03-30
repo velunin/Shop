@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Shop.Cqrs
+namespace MassInstance.Cqrs
 {
     public interface IHandlerResolver
     {

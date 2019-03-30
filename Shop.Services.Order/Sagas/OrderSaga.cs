@@ -2,13 +2,11 @@
 using System.Threading.Tasks;
 
 using Automatonymous;
+using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
 using MassTransit;
 
 using Microsoft.Extensions.Logging;
-
-using Shop.Cqrs.Commands;
-
 using Shop.DataAccess.Dto;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;

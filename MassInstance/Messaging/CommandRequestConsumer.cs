@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shop.Cqrs.Commands;
 
 namespace MassInstance.Messaging
 {

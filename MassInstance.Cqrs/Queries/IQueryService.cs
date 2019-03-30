@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shop.Cqrs.Queries
+namespace MassInstance.Cqrs.Queries
 {
     public interface IQueryService
     {

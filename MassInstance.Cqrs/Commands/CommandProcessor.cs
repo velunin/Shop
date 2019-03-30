@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shop.Cqrs.Commands
+namespace MassInstance.Cqrs.Commands
 {
     public class CommandProcessor : ICommandProcessor
     {

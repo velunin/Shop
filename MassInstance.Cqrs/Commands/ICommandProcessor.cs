@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shop.Cqrs.Commands
+namespace MassInstance.Cqrs.Commands
 {
     public interface ICommandProcessor
     {

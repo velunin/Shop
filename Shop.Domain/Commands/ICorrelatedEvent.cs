@@ -1,5 +1,5 @@
 ﻿using System;
-using Shop.Cqrs.Events;
+using MassInstance.Cqrs.Events;
 
 namespace Shop.Domain.Commands
 {

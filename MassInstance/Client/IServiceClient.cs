@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Shop.Cqrs.Commands;
+using MassInstance.Cqrs.Commands;
 
 namespace MassInstance.Client
 {

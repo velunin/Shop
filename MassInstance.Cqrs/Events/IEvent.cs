@@ -1,4 +1,4 @@
-﻿namespace Shop.Cqrs.Events
+﻿namespace MassInstance.Cqrs.Events
 {
     public interface IEvent
     {

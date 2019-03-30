@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using Automatonymous;
+using MassInstance.Cqrs;
+using MassInstance.Cqrs.Commands;
+using MassInstance.Cqrs.Events;
+using MassInstance.Cqrs.Queries;
 using Microsoft.Extensions.DependencyInjection;
-using Shop.Cqrs;
-using Shop.Cqrs.Commands;
-using Shop.Cqrs.Events;
-using Shop.Cqrs.Queries;
 
 namespace MassInstance.ServiceCollection
 {

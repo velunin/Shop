@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
+using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
 using MassInstance.Messaging;
-using Shop.Cqrs.Commands;
 
 namespace MassInstance.Configuration
 {

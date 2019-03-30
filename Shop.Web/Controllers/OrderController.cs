@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 using AutoMapper;
 using MassInstance.Client;
+using MassInstance.Cqrs.Queries;
 using Microsoft.AspNetCore.Mvc;
-using Shop.Cqrs.Queries;
-
 using Shop.DataProjections.Queries;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;

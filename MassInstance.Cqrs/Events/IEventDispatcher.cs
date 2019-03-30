@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shop.Cqrs.Events
+namespace MassInstance.Cqrs.Events
 {
     public interface IEventDispatcher
     {

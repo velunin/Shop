@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
+using MassInstance.Cqrs.Events;
 using MassTransit;
-using Shop.Cqrs.Events;
 
 namespace MassInstance.Messaging
 {

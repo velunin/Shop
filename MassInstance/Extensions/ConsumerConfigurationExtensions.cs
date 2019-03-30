@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Linq.Expressions;
 using GreenPipes;
+using MassInstance.Cqrs.Commands;
+using MassInstance.Cqrs.Events;
 using MassInstance.MessageContracts;
 using MassInstance.Messaging;
 using MassTransit;
-using Shop.Cqrs.Commands;
-using Shop.Cqrs.Events;
 
 namespace MassInstance.Extensions
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using MassInstance.Cqrs;
 using Microsoft.Extensions.DependencyInjection;
-using Shop.Cqrs;
 
 namespace MassInstance.ServiceCollection
 {

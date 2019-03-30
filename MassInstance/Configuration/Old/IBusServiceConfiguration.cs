@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using MassInstance.Cqrs.Commands;
+using MassInstance.Cqrs.Events;
 using MassTransit.Saga;
-using Shop.Cqrs.Commands;
-using Shop.Cqrs.Events;
 
 namespace MassInstance.Configuration.Old
 {
