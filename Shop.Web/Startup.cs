@@ -9,20 +9,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using AutoMapper;
+
 using MassInstance;
-using MassInstance.Client;
-using MassInstance.Configuration.Client;
 using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 
-using Microsoft.Extensions.Options;
-
-using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
 using Shop.Domain;
-using Shop.Domain.Commands.Cart;
-using Shop.Domain.Commands.Order;
+
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 using RabbitMqConfig = Shop.DataAccess.Dto.RabbitMqConfig;
 
@@ -87,12 +82,10 @@ namespace Shop.Web
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
-                var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
-
-                cfg.Host(new Uri(rabbitConfig.Uri), h =>
+                cfg.Host(new Uri(rabbitMqConfig.Uri), h =>
                 {
-                    h.Username(rabbitConfig.User);
-                    h.Password(rabbitConfig.Password);
+                    h.Username(rabbitMqConfig.User);
+                    h.Password(rabbitMqConfig.Password);
                 });
             }));
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());

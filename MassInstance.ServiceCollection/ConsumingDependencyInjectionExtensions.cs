@@ -20,5 +20,10 @@ namespace MassInstance.ServiceCollection
 
             serviceCollection.AddSingleton<IBusServiceEndpointsConfiguration>(busServiceEndpointsConfigurator);
         }
+
+        public static void AddServiceHosts(this IServiceCollection serviceCollection)
+        {
+
+        }
     }
 }
