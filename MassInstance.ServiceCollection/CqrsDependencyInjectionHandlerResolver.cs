@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MassInstance.ServiceCollection
 {
-    internal class CqrsServiceCollectionHandlerResolver : IHandlerResolver
+    internal class CqrsDependencyInjectionHandlerResolver : IHandlerResolver
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public CqrsServiceCollectionHandlerResolver(IServiceProvider serviceProvider)
+        public CqrsDependencyInjectionHandlerResolver(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

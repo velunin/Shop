@@ -59,8 +59,6 @@ namespace MassInstance.Configuration
                     .GetInterfaces()
                     .Any(i => i == typeof(IQueueMap)));
 
-            var composeConfigureHandlingActions = configureExceptionHandling;
-
             foreach (var queueField in queueFields)
             {
                 if (_sagaTypes.Contains(queueField.FieldType))
@@ -69,6 +67,7 @@ namespace MassInstance.Configuration
                 }
 
                 var queueConfigurator = new QueueConfiguratorBase(_commandConsumerFactory, _exceptionResponseResolver, queueField.FieldType);
+                var composeConfigureHandlingActions = configureExceptionHandling;
 
                 if (_queuesConfigsOverrides.TryGetValue(
                     queueField.Name, 
@@ -80,21 +79,12 @@ namespace MassInstance.Configuration
                     composeConfigureHandlingActions += commandExceptionHandlingForQueue;
                 }
                 
-                busConfigurator.ReceiveEndpoint(host, ExtractQueueName(queueField), e =>
+                busConfigurator.ReceiveEndpoint(host, ServiceMapHelper.ExtractQueueName(queueField), e =>
                 {
                     queueConfigurator.Configure(e, composeConfigureHandlingActions);
                 });
             }
         }
 
-        private static string ExtractQueueName(MemberInfo fieldInfo)
-        {
-            return Regex.Replace(
-                    fieldInfo.Name,
-                    "([A-Z])", "-$0",
-                    RegexOptions.Compiled)
-                .Trim('-')
-                .ToLower();
-        }
     }
 }

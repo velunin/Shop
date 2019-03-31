@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using MassInstance.Cqrs.Queries;
 using Microsoft.AspNetCore.Mvc;
-using Shop.Cqrs.Queries;
 using Shop.DataProjections.Queries;
 using Shop.Web.Models;
 

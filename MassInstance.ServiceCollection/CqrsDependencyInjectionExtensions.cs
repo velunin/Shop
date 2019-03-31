@@ -12,7 +12,7 @@ namespace MassInstance.ServiceCollection
     {
         public static void AddCqrs(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IHandlerResolver, CqrsServiceCollectionHandlerResolver>();
+            serviceCollection.AddSingleton<IHandlerResolver, CqrsDependencyInjectionHandlerResolver>();
             serviceCollection.AddSingleton<ICommandProcessor, CommandProcessor>();
             serviceCollection.AddSingleton<IQueryService, QueryService>();
             serviceCollection.AddSingleton<IEventDispatcher, EventDispatcher>();

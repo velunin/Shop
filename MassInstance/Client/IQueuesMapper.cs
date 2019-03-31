@@ -6,6 +6,8 @@ namespace MassInstance.Client
     {
         IQueuesMapper Map<TCommandType>(string queueName);
 
+        IQueuesMapper Map(Type commandType, string queueName);
+
         string GetQueueName(Type commandType);
 
         string GetQueueName<TCommandType>();

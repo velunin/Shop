@@ -9,13 +9,19 @@ namespace MassInstance.Client
 
         public IQueuesMapper Map<TCommandType>(string queueName)
         {
-            if (!_map.TryAdd(typeof(TCommandType), queueName))
+            return Map(typeof(TCommandType), queueName);
+        }
+
+        public IQueuesMapper Map(Type commandType, string queueName)
+        {
+            if (!_map.TryAdd(commandType, queueName))
             {
-                throw new InvalidOperationException($"For type {typeof(TCommandType)} map already registered");
+                throw new InvalidOperationException($"For type {commandType} map already registered");
             }
 
             return this;
         }
+
 
         public string GetQueueName(Type commandType)
         {

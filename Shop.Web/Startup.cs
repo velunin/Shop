@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
+using MassInstance.Configuration.Client;
 using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
@@ -19,9 +20,11 @@ using Microsoft.Extensions.Options;
 
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
+using Shop.Domain;
 using Shop.Domain.Commands.Cart;
 using Shop.Domain.Commands.Order;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
+using RabbitMqConfig = Shop.DataAccess.Dto.RabbitMqConfig;
 
 namespace Shop.Web
 {
@@ -67,15 +70,18 @@ namespace Shop.Web
 
         private void RegisterServiceBus(IServiceCollection services)
         {
-            services.AddServiceClient(mapper =>
-                mapper
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
-                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
-                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+            var rabbitMqConfig = Configuration.GetSection("RabbitMqConfig").Get<RabbitMqConfig>();
 
-                    .Map<AddOrUpdateProductInCart>(ServicesQueues.CartServiceCommandsQueue)
-                    .Map<DeleteProductFromCart>(ServicesQueues.CartServiceCommandsQueue)
-            );
+            services.AddServiceClient(
+                cfg => cfg
+                    .Add<CartServiceMap>()
+                    .Add<OrderServiceMap>(),
+                cfg =>
+                {
+                    cfg.Uri = rabbitMqConfig.Uri;
+                    cfg.User = rabbitMqConfig.User;
+                    cfg.Password = rabbitMqConfig.Password;
+                });
 
             services.AddMassTransit();
 

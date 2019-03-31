@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using MassInstance.Configuration.Client;
 using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
 using MassTransit;
@@ -16,17 +17,20 @@ namespace MassInstance.Client
         private readonly IBus _bus;
         private readonly IQueuesMapper _mapper;
         private readonly ILogger _logger;
+        private readonly RabbitMqConfig _rabbitMqConfig;
 
         private const int DefaultTimeoutInSec = 15;
 
         public ServiceClient(
             IBus bus, 
             IQueuesMapper mapper,
-            ILogger<ServiceClient> logger)
+            ILogger<ServiceClient> logger,
+            RabbitMqConfig rabbitMqConfig)
         {
             _bus = bus;
             _mapper = mapper;
             _logger = logger;
+            _rabbitMqConfig = rabbitMqConfig;
         }
 
         public async Task ProcessAsync<TCommand>(
@@ -47,7 +51,7 @@ namespace MassInstance.Client
         public async Task<TResult> ProcessAsync<TCommand, TResult>(
             TCommand command, 
             TimeSpan timeout,
-            CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class,IResultingCommand<TResult>
+            CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, IResultingCommand<TResult>
         {
             var response = await SendCommand<TCommand, TResult>(command, timeout, cancellationToken).ConfigureAwait(false);
 
@@ -109,7 +113,7 @@ namespace MassInstance.Client
         private Uri BuildUriForCommand<TCommand>()
         {
             var queue = _mapper.GetQueueName<TCommand>();
-            var host = "host"; // _config.Uri.Trim().TrimEnd('/');
+            var host = _rabbitMqConfig.Uri.Trim().TrimEnd('/');
 
             return new Uri($"{host}/{queue}");
         }

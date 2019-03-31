@@ -2,6 +2,7 @@
 using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
+using MassInstance.Configuration.Client;
 using MassInstance.Extensions;
 using MassInstance.ServiceCollection;
 using MassTransit;
