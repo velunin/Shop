@@ -1,6 +1,6 @@
 ﻿namespace MassInstance.Configuration
 {
-    public interface IRabbitMqBusCompositionServiceConfigurator : IRabbitMqBusServiceConfigurator, ICompositionServiceConfiguration
+    public interface IRabbitMqBusCompositionServiceConfigurator : IRabbitMqBusServiceConfigurator
     {
     }
 }

@@ -6,7 +6,7 @@ using MassTransit.RabbitMqTransport;
 
 namespace MassInstance.Configuration
 {
-    public class CompositionServiceConfigurator : IRabbitMqBusCompositionServiceConfigurator
+    public class CompositionServiceConfigurator : IRabbitMqBusCompositionServiceConfigurator, ICompositionServiceConfiguration
     {
         private readonly ICommandConsumerFactory _commandConsumerFactory;
         private readonly IExceptionResponseResolver _exceptionResponseResolver;

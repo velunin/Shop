@@ -28,7 +28,7 @@ namespace MassInstance.Configuration
             IRabbitMqReceiveEndpointConfigurator endpointConfigurator, 
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
-            var commandFields = _queueType.GetFields(BindingFlags.Public)
+            var commandFields = _queueType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(f => f
                     .FieldType
                     .GetInterfaces()

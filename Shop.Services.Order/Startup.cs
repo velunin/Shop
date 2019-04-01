@@ -49,9 +49,9 @@ namespace Shop.Services.Order
                 AppDomain.CurrentDomain.GetAssemblies(), 
                 ServiceLifetime.Transient);
 
-            RegisterServiceBus(services);
-
             services.AddSingleton<IFakeMailService, FakeMailService>();
+
+            RegisterServiceBus(services);
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
         }
@@ -81,14 +81,6 @@ namespace Shop.Services.Order
             services.AddServiceHosts(cfg => cfg
                 .AddService<OrderServiceMap>(srvCfg =>
                     srvCfg.ConfigureAsSaga(srv => srv.OrderServiceSaga, typeof(OrderSagaContext))));
-
-            services.AddServices(srvCfg =>
-            {
-                srvCfg
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceSagaQueue,
-                        consumeCfg => consumeCfg.AddSaga<OrderSagaContext>());
-            });
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {

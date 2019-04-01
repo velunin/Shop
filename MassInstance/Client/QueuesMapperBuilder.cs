@@ -25,7 +25,7 @@ namespace MassInstance.Client
             foreach (var serviceType in _serviceTypes)
             {
                 var queueFields = serviceType
-                    .GetFields(BindingFlags.Public)
+                    .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                     .Where(f => f
                         .FieldType
                         .GetInterfaces()
@@ -36,7 +36,7 @@ namespace MassInstance.Client
                     var queueFieldType = queueField.FieldType;
                     var queueName = ServiceMapHelper.ExtractQueueName(queueField);
 
-                    var commandFields = queueFieldType.GetFields(BindingFlags.Public)
+                    var commandFields = queueFieldType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                         .Where(f => f
                             .FieldType
                             .GetInterfaces()

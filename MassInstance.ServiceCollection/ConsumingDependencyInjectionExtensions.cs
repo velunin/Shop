@@ -26,20 +26,20 @@ namespace MassInstance.ServiceCollection
             this IServiceCollection serviceCollection, 
             Action<ICompositionServiceConfiguration> configureServices)
         {
-            serviceCollection.AddSingleton<ICommandConsumerFactory, DependencyInjectionCommandConsumerFactory>();
             serviceCollection.AddSingleton<IExceptionResponseResolver, ExceptionResponseResolver>();
+            serviceCollection.AddSingleton<ICommandConsumerFactory, DependencyInjectionCommandConsumerFactory>();
             serviceCollection.AddSingleton<ISagaConfigurator, DependencyInjectionSagaConfigurator>();
             serviceCollection
-                .AddSingleton<IRabbitMqBusCompositionServiceConfigurator, CompositionServiceConfigurator>();
-
-            serviceCollection.AddSingleton<ICompositionServiceConfiguration>(provider =>
-                provider.GetRequiredService<IRabbitMqBusCompositionServiceConfigurator>());
+                .AddSingleton<CompositionServiceConfigurator>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var compositionServiceConfiguration =
-                serviceProvider.GetRequiredService<ICompositionServiceConfiguration>();
+                serviceProvider.GetRequiredService<CompositionServiceConfigurator>();
 
             configureServices(compositionServiceConfiguration);
+
+            serviceCollection.AddSingleton<IRabbitMqBusCompositionServiceConfigurator>(compositionServiceConfiguration);
+            serviceCollection.AddSingleton<ICompositionServiceConfiguration>(compositionServiceConfiguration);
         }
     }
 }

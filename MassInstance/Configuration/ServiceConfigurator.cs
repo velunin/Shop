@@ -59,7 +59,7 @@ namespace MassInstance.Configuration
         {
             var serviceType = typeof(TService);
             var queueFields = serviceType
-                .GetFields(BindingFlags.Public)
+                .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(f => f
                     .FieldType
                     .GetInterfaces()
