@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using MassInstance.Configuration.ServiceMap;
 using MassTransit.RabbitMqTransport;
 
@@ -13,22 +12,28 @@ namespace MassInstance.Configuration
     {
         private readonly ICommandConsumerFactory _commandConsumerFactory;
         private readonly IExceptionResponseResolver _exceptionResponseResolver;
+        private readonly ISagaConfigurator _sagaConfigurator;
 
         private readonly IDictionary<string, (QueueConfiguratorBase, Action<CommandExceptionHandlingOptions>)> _queuesConfigsOverrides =
             new Dictionary<string, (QueueConfiguratorBase, Action<CommandExceptionHandlingOptions>)>();
 
-        private readonly HashSet<Type> _sagaTypes = new HashSet<Type>();
+        private readonly IDictionary<Type,Type> _sagaQueues = new Dictionary<Type, Type>();
 
-        public ServiceConfigurator(ICommandConsumerFactory commandConsumerFactory, IExceptionResponseResolver exceptionResponseResolver)
+        public ServiceConfigurator(
+            ICommandConsumerFactory commandConsumerFactory, 
+            IExceptionResponseResolver exceptionResponseResolver, 
+            ISagaConfigurator sagaConfigurator)
         {
             _commandConsumerFactory =
                 commandConsumerFactory ?? throw new ArgumentNullException(nameof(commandConsumerFactory));
 
             _exceptionResponseResolver = 
                 exceptionResponseResolver ?? throw new ArgumentNullException(nameof(exceptionResponseResolver));
+
+            _sagaConfigurator = sagaConfigurator ?? throw new ArgumentNullException(nameof(sagaConfigurator));
         }
 
-        public void ForQueue<TQueue>(
+        public void Configure<TQueue>(
             Expression<Func<TService, TQueue>> queueSelector,
             Action<IQueueConfiguration<TQueue>> configureQueue = null,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) where TQueue : IQueueMap
@@ -41,9 +46,10 @@ namespace MassInstance.Configuration
             _queuesConfigsOverrides.Add(queueName, (queueConfiguration,configureExceptionHandling));
         }
 
-        public void SetAsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap
+        public void ConfigureAsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector, Type sagaInstanceType) 
+            where TQueue : IQueueMap 
         {
-            _sagaTypes.Add(queueSelector.ReturnType);
+            _sagaQueues.Add(queueSelector.ReturnType, sagaInstanceType);
         }
 
         public void Configure(
@@ -61,12 +67,18 @@ namespace MassInstance.Configuration
 
             foreach (var queueField in queueFields)
             {
-                if (_sagaTypes.Contains(queueField.FieldType))
+                var queueType = queueField.FieldType;
+
+                if (_sagaQueues.TryGetValue(queueType, out var sagaType))
                 {
+                    busConfigurator.ReceiveEndpoint(host, ServiceMapHelper.ExtractQueueName(queueField), e =>
+                    {
+                        _sagaConfigurator.Configure(sagaType, e);
+                    });
                     continue;
                 }
 
-                var queueConfigurator = new QueueConfiguratorBase(_commandConsumerFactory, _exceptionResponseResolver, queueField.FieldType);
+                var queueConfigurator = new QueueConfiguratorBase(_commandConsumerFactory, _exceptionResponseResolver, queueType);
                 var composeConfigureHandlingActions = configureExceptionHandling;
 
                 if (_queuesConfigsOverrides.TryGetValue(

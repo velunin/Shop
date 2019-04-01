@@ -6,6 +6,6 @@ namespace MassInstance.Configuration
 {
     public interface IQueueConfiguration<TQueue> where TQueue : IQueueMap
     {
-        void ForCommand<TCommand>(Expression<Func<TQueue, TCommand>> commandSelector, Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
+        void Configure<TCommand>(Expression<Func<TQueue, TCommand>> commandSelector, Action<CommandExceptionHandlingOptions> configureExceptionHandling = null);
     }
 }

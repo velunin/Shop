@@ -2,8 +2,6 @@
 using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
-using MassInstance.Configuration.Client;
-using MassInstance.Extensions;
 using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration.Saga;
@@ -19,7 +17,7 @@ using Microsoft.Extensions.Options;
 
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
-using Shop.Services.Common;
+using Shop.Domain;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Order
@@ -79,6 +77,10 @@ namespace Shop.Services.Order
                 new EntityFrameworkSagaRepository<OrderSagaContext>(
                     provider.GetRequiredService<ShopDbContext>,
                     optimistic: true));
+
+            services.AddServiceHosts(cfg => cfg
+                .AddService<OrderServiceMap>(srvCfg =>
+                    srvCfg.ConfigureAsSaga(srv => srv.OrderServiceSaga, typeof(OrderSagaContext))));
 
             services.AddServices(srvCfg =>
             {
