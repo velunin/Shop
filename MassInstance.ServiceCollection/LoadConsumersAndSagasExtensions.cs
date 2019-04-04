@@ -7,11 +7,16 @@ namespace MassInstance.ServiceCollection
 {
     public static class LoadConsumersAndSagasExtensions
     {
-        public static void LoadServices(this IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
-            IServiceProvider provider, IRabbitMqHost host)
+        public static void LoadServices(
+            this IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
+            IServiceProvider provider, 
+            IRabbitMqHost host)
         {
             var compositionServiceCfg = provider.GetRequiredService<IRabbitMqBusCompositionServiceConfigurator>();
-            compositionServiceCfg.Configure(busFactoryConfigurator, host);
+
+            compositionServiceCfg.Configure(
+                busFactoryConfigurator, 
+                host);
         }
     }
 }
