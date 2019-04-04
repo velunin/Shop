@@ -1,5 +1,12 @@
 ﻿using System;
+using System.Threading;
 using MassTransit;
+using MassTransit.RabbitMqTransport;
+using MassTransit.RabbitMqTransport.Configuration;
+using MassTransit.RabbitMqTransport.Configurators;
+using MassTransit.Topology;
+using MassTransit.Topology.Topologies;
+using MassTransit.Topology.EntityNameFormatters;
 
 namespace MassInstance.RabbitMq
 {
@@ -7,12 +14,54 @@ namespace MassInstance.RabbitMq
     {
         public static IBusControl CreateMassInstanceRabbitMqBus(this IBusFactorySelector busFactorySelector, Action<IMassInstanceBusFactoryConfigurator> configure)
         {
-            throw new NotImplementedException();
+            return MassInstanceBusFactory.Create(configure);
         }
     }
 
-    public interface IMassInstanceBusFactoryConfigurator
+    public interface IMassInstanceBusFactoryConfigurator : IRabbitMqBusFactoryConfigurator
     {
+    }
 
+    public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator
+    {
+        public MassInstanceBusFactoryConfigurator(
+            IRabbitMqBusConfiguration configuration, 
+            IRabbitMqEndpointConfiguration busEndpointConfiguration) 
+            : base(configuration, busEndpointConfiguration)
+        {
+        }
+    }
+
+    public static class MassInstanceBusFactory
+    {
+        public static IMessageTopologyConfigurator MessageTopology => Cached.MessageTopologyValue.Value;
+
+        public static IBusControl Create(Action<IMassInstanceBusFactoryConfigurator> configure)
+        {
+            var topologyConfiguration = new RabbitMqTopologyConfiguration(MessageTopology);
+            var busConfiguration = new RabbitMqBusConfiguration(topologyConfiguration);
+            var busEndpointConfiguration = busConfiguration.CreateEndpointConfiguration();
+
+            var configurator = new MassInstanceBusFactoryConfigurator(busConfiguration, busEndpointConfiguration);
+
+            configure(configurator);
+
+            return configurator.Build();
+        }
+
+
+        static class Cached
+        {
+            internal static readonly Lazy<IMessageTopologyConfigurator> MessageTopologyValue =
+                new Lazy<IMessageTopologyConfigurator>(() => new MessageTopology(_entityNameFormatter),
+                    LazyThreadSafetyMode.PublicationOnly);
+
+            static readonly IEntityNameFormatter _entityNameFormatter;
+
+            static Cached()
+            {
+                _entityNameFormatter = new MessageNameFormatterEntityNameFormatter(new RabbitMqMessageNameFormatter());
+            }
+        }
     }
 }
