@@ -50,17 +50,17 @@ namespace MassInstance.RabbitMq
         }
 
 
-        static class Cached
+        private static class Cached
         {
             internal static readonly Lazy<IMessageTopologyConfigurator> MessageTopologyValue =
-                new Lazy<IMessageTopologyConfigurator>(() => new MessageTopology(_entityNameFormatter),
+                new Lazy<IMessageTopologyConfigurator>(() => new MessageTopology(EntityNameFormatter),
                     LazyThreadSafetyMode.PublicationOnly);
 
-            static readonly IEntityNameFormatter _entityNameFormatter;
+            private static readonly IEntityNameFormatter EntityNameFormatter;
 
             static Cached()
             {
-                _entityNameFormatter = new MessageNameFormatterEntityNameFormatter(new RabbitMqMessageNameFormatter());
+                EntityNameFormatter = new MessageNameFormatterEntityNameFormatter(new RabbitMqMessageNameFormatter());
             }
         }
     }
