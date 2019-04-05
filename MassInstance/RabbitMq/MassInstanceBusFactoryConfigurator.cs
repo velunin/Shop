@@ -36,9 +36,12 @@ namespace MassInstance.RabbitMq
                 throw new ArgumentException($"Configuration for '{serviceType}' already exist");
             }
 
-            var serviceConfig = new ServiceConfigurator<TService>(this,
+            var serviceConfig = new ServiceConfigurator<TService>(
+                this,
                 _consumerFactory,
                 host);
+
+
             throw new NotImplementedException();
         }
     }
