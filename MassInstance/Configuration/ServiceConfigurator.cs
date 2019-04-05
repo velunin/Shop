@@ -4,15 +4,16 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using MassInstance.Configuration.ServiceMap;
+using MassInstance.RabbitMq;
 using MassTransit.RabbitMqTransport;
 
 namespace MassInstance.Configuration
 {
     public class ServiceConfigurator<TService> : IRabbitMqBusServiceConfigurator, IServiceConfiguration<TService> where TService : IServiceMap
     {
-        private readonly ICommandConsumerFactory _commandConsumerFactory;
-        private readonly IExceptionResponseResolver _exceptionResponseResolver;
-        private readonly ISagaConfigurator _sagaConfigurator;
+        private readonly IMassInstanceConsumerFactory _consumerFactory;
+        private readonly IMassInstanceBusFactoryConfigurator _busConfigurator;
+        private readonly IRabbitMqHost _host;
 
         private readonly IDictionary<string, (QueueConfiguratorBase, Action<CommandExceptionHandlingOptions>)> _queuesConfigsOverrides =
             new Dictionary<string, (QueueConfiguratorBase, Action<CommandExceptionHandlingOptions>)>();
@@ -20,17 +21,14 @@ namespace MassInstance.Configuration
         private readonly IDictionary<Type,Type> _sagaQueues = new Dictionary<Type, Type>();
 
         public ServiceConfigurator(
-            ICommandConsumerFactory commandConsumerFactory, 
-            IExceptionResponseResolver exceptionResponseResolver, 
-            ISagaConfigurator sagaConfigurator)
+            IMassInstanceBusFactoryConfigurator busConfigurator,
+            IMassInstanceConsumerFactory massInstanceConsumerFactory,
+            IRabbitMqHost host)
         {
-            _commandConsumerFactory =
-                commandConsumerFactory ?? throw new ArgumentNullException(nameof(commandConsumerFactory));
-
-            _exceptionResponseResolver = 
-                exceptionResponseResolver ?? throw new ArgumentNullException(nameof(exceptionResponseResolver));
-
-            _sagaConfigurator = sagaConfigurator ?? throw new ArgumentNullException(nameof(sagaConfigurator));
+            _consumerFactory =
+                massInstanceConsumerFactory ?? throw new ArgumentNullException(nameof(massInstanceConsumerFactory));
+            _busConfigurator = busConfigurator ?? throw new ArgumentNullException(nameof(busConfigurator));
+            _host = host ?? throw new ArgumentNullException(nameof(host));
         }
 
         public void Configure<TQueue>(
@@ -38,7 +36,7 @@ namespace MassInstance.Configuration
             Action<IQueueConfiguration<TQueue>> configureQueue = null,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null) where TQueue : IQueueMap
         {
-            var queueConfiguration = new QueueConfigurator<TQueue>(_commandConsumerFactory, _exceptionResponseResolver);
+            var queueConfiguration = new QueueConfigurator<TQueue>(_consumerFactory);
             var queueName = ((MemberExpression) queueSelector.Body).Member.Name;
 
             configureQueue?.Invoke(queueConfiguration);
@@ -52,10 +50,7 @@ namespace MassInstance.Configuration
             _sagaQueues.Add(queueSelector.ReturnType, sagaInstanceType);
         }
 
-        public void Configure(
-            IRabbitMqBusFactoryConfigurator busConfigurator, 
-            IRabbitMqHost host,
-            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        public void Build(Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
             var serviceType = typeof(TService);
             var queueFields = serviceType
@@ -71,14 +66,14 @@ namespace MassInstance.Configuration
 
                 if (_sagaQueues.TryGetValue(queueType, out var sagaType))
                 {
-                    busConfigurator.ReceiveEndpoint(host, ServiceMapHelper.ExtractQueueName(queueField), e =>
+                    _busConfigurator.ReceiveEndpoint(_host, ServiceMapHelper.ExtractQueueName(queueField), e =>
                     {
-                        _sagaConfigurator.Configure(sagaType, e);
+                        _consumerFactory.CreateSaga(sagaType, e);
                     });
                     continue;
                 }
 
-                var queueConfigurator = new QueueConfiguratorBase(_commandConsumerFactory, _exceptionResponseResolver, queueType);
+                var queueConfigurator = new QueueConfiguratorBase(_consumerFactory, queueType);
                 var composeConfigureHandlingActions = configureExceptionHandling;
 
                 if (_queuesConfigsOverrides.TryGetValue(
@@ -91,7 +86,7 @@ namespace MassInstance.Configuration
                     composeConfigureHandlingActions += commandExceptionHandlingForQueue;
                 }
                 
-                busConfigurator.ReceiveEndpoint(host, ServiceMapHelper.ExtractQueueName(queueField), e =>
+                _busConfigurator.ReceiveEndpoint(_host, ServiceMapHelper.ExtractQueueName(queueField), e =>
                 {
                     queueConfigurator.Configure(e, composeConfigureHandlingActions);
                 });

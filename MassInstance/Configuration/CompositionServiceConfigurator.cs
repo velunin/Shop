@@ -8,24 +8,17 @@ namespace MassInstance.Configuration
 {
     public class CompositionServiceConfigurator : IRabbitMqBusCompositionServiceConfigurator, ICompositionServiceConfiguration
     {
-        private readonly ICommandConsumerFactory _commandConsumerFactory;
-        private readonly IExceptionResponseResolver _exceptionResponseResolver;
-        private readonly ISagaConfigurator _sagaConfigurator;
+        private readonly IMassInstanceConsumerFactory _massInstanceConsumerFactory;
 
         private readonly IDictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>
             _serviceConfigurators =
                 new Dictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>();
 
         public CompositionServiceConfigurator(
-            ICommandConsumerFactory commandConsumerFactory,
-            IExceptionResponseResolver exceptionResponseResolver, 
-            ISagaConfigurator sagaConfigurator)
+            IMassInstanceConsumerFactory massInstanceConsumerFactory)
         {
-            _commandConsumerFactory =
-                commandConsumerFactory ?? throw new ArgumentNullException(nameof(commandConsumerFactory));
-            _exceptionResponseResolver = 
-                exceptionResponseResolver ?? throw new ArgumentNullException(nameof(exceptionResponseResolver));
-            _sagaConfigurator = sagaConfigurator ?? throw new ArgumentNullException(nameof(sagaConfigurator));
+            _massInstanceConsumerFactory =
+                massInstanceConsumerFactory ?? throw new ArgumentNullException(nameof(massInstanceConsumerFactory));
         }
 
         public void AddService<TService>(
@@ -41,9 +34,7 @@ namespace MassInstance.Configuration
             }
 
             var serviceConfig = new ServiceConfigurator<TService>(
-                _commandConsumerFactory,
-                _exceptionResponseResolver, 
-                _sagaConfigurator);
+                _massInstanceConsumerFactory);
 
             configureService?.Invoke(serviceConfig);
 
@@ -52,7 +43,7 @@ namespace MassInstance.Configuration
                 (serviceConfig, configureExceptionHandling));
         }
 
-        public void Configure(
+        public void Build(
             IRabbitMqBusFactoryConfigurator busConfigurator,
             IRabbitMqHost host,
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
@@ -62,7 +53,7 @@ namespace MassInstance.Configuration
                 var (serviceConfiguratorItem, configureExceptionHanlingForService) = serviceConfiguratorEntry.Value;
                 
                 serviceConfiguratorItem
-                    .Configure(
+                    .Build(
                         busConfigurator,
                         host,
                         configureExceptionHandling + configureExceptionHanlingForService);

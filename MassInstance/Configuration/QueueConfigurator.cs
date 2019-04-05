@@ -12,11 +12,9 @@ namespace MassInstance.Configuration
         }
 
         public QueueConfigurator(
-            ICommandConsumerFactory commandConsumerFactory, 
-            IExceptionResponseResolver exceptionResponseResolver) 
+            IMassInstanceConsumerFactory massInstanceConsumerFactory) 
             : base(
-                commandConsumerFactory, 
-                exceptionResponseResolver,
+                massInstanceConsumerFactory, 
                 typeof(TQueue))
         {
         }

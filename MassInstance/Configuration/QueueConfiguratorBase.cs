@@ -11,16 +11,14 @@ namespace MassInstance.Configuration
     public class QueueConfiguratorBase : IRabbitMqBusQueueConfigurator
     {
         private readonly Type _queueType;
-        private readonly ICommandConsumerFactory _commandConsumerFactory;
-        private readonly IExceptionResponseResolver _exceptionResponseResolver;
+        private readonly IMassInstanceConsumerFactory _consumerFactory;
 
         protected readonly IDictionary<Type,Action<CommandExceptionHandlingOptions>> CommandExceptionHanlingConfigActions = 
             new Dictionary<Type, Action<CommandExceptionHandlingOptions>>();
 
-        public QueueConfiguratorBase(ICommandConsumerFactory commandConsumerFactory, IExceptionResponseResolver exceptionResponseResolver, Type queueType)
+        public QueueConfiguratorBase(IMassInstanceConsumerFactory massInstanceConsumerFactory, Type queueType)
         {
-            _commandConsumerFactory = commandConsumerFactory ?? throw new ArgumentNullException(nameof(commandConsumerFactory));
-            _exceptionResponseResolver = exceptionResponseResolver ?? throw new ArgumentNullException(nameof(exceptionResponseResolver));
+            _consumerFactory = massInstanceConsumerFactory ?? throw new ArgumentNullException(nameof(massInstanceConsumerFactory));
             _queueType = queueType ?? throw new ArgumentNullException(nameof(queueType));
         }
 
@@ -28,7 +26,8 @@ namespace MassInstance.Configuration
             IRabbitMqReceiveEndpointConfigurator endpointConfigurator, 
             Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
         {
-            var commandFields = _queueType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            var commandFields = _queueType
+                .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(f => f
                     .FieldType
                     .GetInterfaces()
@@ -52,11 +51,11 @@ namespace MassInstance.Configuration
 
                 composeConfigureHandlingActions?.Invoke(commandExceptionHandling);
 
-                _exceptionResponseResolver.Map(commandType, commandExceptionHandling);
+                ExceptionResponseResolver.Map(commandType, commandExceptionHandling);
 
                 endpointConfigurator.Consumer(
                     consumerType, 
-                    type => _commandConsumerFactory.CreateConsumer(consumerType));
+                    type => _consumerFactory.CreateConsumer(consumerType));
             }
         }
     }

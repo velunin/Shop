@@ -63,7 +63,7 @@ namespace Shop.Services.Cart
                 .AddService<CartServiceMap>(
                     srvCfg =>
                     {
-                        srvCfg.Configure(
+                        srvCfg.Build(
                             cartServiceMap => cartServiceMap.CartServiceCommands,
                             queueCfg =>
                             {

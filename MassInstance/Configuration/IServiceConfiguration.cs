@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Automatonymous;
 using MassInstance.Configuration.ServiceMap;
 
 namespace MassInstance.Configuration

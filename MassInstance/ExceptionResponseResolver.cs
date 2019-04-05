@@ -3,22 +3,22 @@ using System.Collections.Concurrent;
 
 namespace MassInstance
 {
-    public class ExceptionResponseResolver : IExceptionResponseResolver
+    public class ExceptionResponseResolver// : IExceptionResponseResolver
     {
-        private readonly ConcurrentDictionary<Type, CommandExceptionHandlingOptions> _typeToOptionsMap =
+        private static readonly ConcurrentDictionary<Type, CommandExceptionHandlingOptions> TypeToOptionsMap =
             new ConcurrentDictionary<Type, CommandExceptionHandlingOptions>();
 
-        public void Map(Type commandType, CommandExceptionHandlingOptions options)
+        public static void Map(Type commandType, CommandExceptionHandlingOptions options)
         {
-            _typeToOptionsMap.AddOrUpdate(
+            TypeToOptionsMap.AddOrUpdate(
                 commandType, 
                 options, 
                 (type, handlingOptions) => options);
         }
 
-        public bool TryResolveResponse(Type commandType, Exception ex, out ExceptionResponse response)
+        public static bool TryResolveResponse(Type commandType, Exception ex, out ExceptionResponse response)
         {
-            if (_typeToOptionsMap.TryGetValue(commandType, out var commandExceptionHandlingOptions))
+            if (TypeToOptionsMap.TryGetValue(commandType, out var commandExceptionHandlingOptions))
             {
                 response = commandExceptionHandlingOptions.GetResponse(ex);
                 return true;

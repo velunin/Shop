@@ -10,9 +10,8 @@ namespace MassInstance.ServiceCollection
             this IServiceCollection serviceCollection, 
             Action<ICompositionServiceConfiguration> configureServices)
         {
-            serviceCollection.AddSingleton<IExceptionResponseResolver, ExceptionResponseResolver>();
-            serviceCollection.AddSingleton<ICommandConsumerFactory, DependencyInjectionCommandConsumerFactory>();
-            serviceCollection.AddSingleton<ISagaConfigurator, DependencyInjectionSagaConfigurator>();
+            serviceCollection.AddSingleton<IMassInstanceConsumerFactory, DependencyInjectionMassInstanceConsumerFactory>();
+            serviceCollection.AddSingleton<IMassInstanceSagaConfigurator, DependencyInjectionMassInstanceSagaConfigurator>();
             serviceCollection
                 .AddSingleton<CompositionServiceConfigurator>();
 

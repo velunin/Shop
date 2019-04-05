@@ -11,16 +11,13 @@ namespace MassInstance.Messaging
         where TCommand : class, ICommand   
     {
         private readonly ICommandProcessor _commandProcessor;
-        private readonly IExceptionResponseResolver _exceptionResponseResolver;
         private readonly ILogger _logger;
 
         public CommandRequestConsumer(
             ICommandProcessor commandProcessor,
-            IExceptionResponseResolver exceptionResponseResolver,
             ILogger<CommandRequestConsumer<TCommand, TResult>> logger)
         {
             _commandProcessor = commandProcessor;
-            _exceptionResponseResolver = exceptionResponseResolver;
             _logger = logger;
         }
 
@@ -51,7 +48,7 @@ namespace MassInstance.Messaging
             {
                 _logger.LogError(ex, "Command processing error");
 
-                if (_exceptionResponseResolver.TryResolveResponse(
+                if (ExceptionResponseResolver.TryResolveResponse(
                     typeof(TCommand), 
                     ex, 
                     out var exceptionResponse))
