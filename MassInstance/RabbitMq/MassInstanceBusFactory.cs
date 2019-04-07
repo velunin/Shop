@@ -21,7 +21,7 @@ namespace MassInstance.RabbitMq
             var busConfiguration = new RabbitMqBusConfiguration(topologyConfiguration);
             var busEndpointConfiguration = busConfiguration.CreateEndpointConfiguration();
 
-            var configurator = new MassInstanceBusFactoryConfigurator(busConfiguration, busEndpointConfiguration);
+            var configurator = new MassInstanceBusFactoryConfigurator(busConfiguration, busEndpointConfiguration, consumerFactory);
 
             configure(configurator);
 

@@ -12,7 +12,7 @@ namespace MassInstance.ServiceCollection
             IServiceProvider provider, 
             IRabbitMqHost host)
         {
-            var compositionServiceCfg = provider.GetRequiredService<IRabbitMqBusCompositionServiceConfigurator>();
+            var compositionServiceCfg = provider.GetRequiredService<IRabbitMqBusCompositionServiceConfiguratorBuilder>();
 
             compositionServiceCfg.Build(
                 busFactoryConfigurator, 

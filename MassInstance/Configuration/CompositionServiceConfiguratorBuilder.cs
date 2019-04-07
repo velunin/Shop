@@ -6,15 +6,15 @@ using MassTransit.RabbitMqTransport;
 
 namespace MassInstance.Configuration
 {
-    public class CompositionServiceConfigurator : IRabbitMqBusCompositionServiceConfigurator, ICompositionServiceConfiguration
+    public class CompositionServiceConfiguratorBuilder : IRabbitMqBusCompositionServiceConfiguratorBuilder, ICompositionServiceConfiguration
     {
         private readonly IMassInstanceConsumerFactory _massInstanceConsumerFactory;
 
-        private readonly IDictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>
+        private readonly IDictionary<Type, (IConfiguratorBuilder, Action<CommandExceptionHandlingOptions>)>
             _serviceConfigurators =
-                new Dictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>();
+                new Dictionary<Type, (IConfiguratorBuilder, Action<CommandExceptionHandlingOptions>)>();
 
-        public CompositionServiceConfigurator(
+        public CompositionServiceConfiguratorBuilder(
             IMassInstanceConsumerFactory massInstanceConsumerFactory)
         {
             _massInstanceConsumerFactory =
@@ -33,7 +33,7 @@ namespace MassInstance.Configuration
                 throw new ArgumentException($"Configuration for '{serviceType}' already exist");
             }
 
-            var serviceConfig = new ServiceConfigurator<TService>(
+            var serviceConfig = new ServiceConfiguratorBuilder<TService>(
                 _massInstanceConsumerFactory);
 
             configureService?.Invoke(serviceConfig);

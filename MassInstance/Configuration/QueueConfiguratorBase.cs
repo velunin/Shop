@@ -4,27 +4,31 @@ using System.Linq;
 using System.Reflection;
 using MassInstance.Cqrs.Commands;
 using MassTransit;
-using MassTransit.RabbitMqTransport;
 
 namespace MassInstance.Configuration
 {
-    public class QueueConfiguratorBase : IRabbitMqBusQueueConfigurator
+    public class QueueConfiguratorBase : IQueueConfiguratorBuilder
     {
         private readonly Type _queueType;
         private readonly IMassInstanceConsumerFactory _consumerFactory;
+        private readonly IReceiveEndpointConfigurator _receiveEndpointConfigurator;
 
         protected readonly IDictionary<Type,Action<CommandExceptionHandlingOptions>> CommandExceptionHanlingConfigActions = 
             new Dictionary<Type, Action<CommandExceptionHandlingOptions>>();
 
-        public QueueConfiguratorBase(IMassInstanceConsumerFactory massInstanceConsumerFactory, Type queueType)
+        public QueueConfiguratorBase(
+            IMassInstanceConsumerFactory massInstanceConsumerFactory, 
+            IReceiveEndpointConfigurator endpointConfigurator, 
+            Type queueType)
         {
             _consumerFactory = massInstanceConsumerFactory ?? throw new ArgumentNullException(nameof(massInstanceConsumerFactory));
             _queueType = queueType ?? throw new ArgumentNullException(nameof(queueType));
+            _receiveEndpointConfigurator = endpointConfigurator ?? throw new ArgumentNullException(nameof(endpointConfigurator));
         }
 
-        public void Configure(
-            IRabbitMqReceiveEndpointConfigurator endpointConfigurator, 
-            Action<CommandExceptionHandlingOptions> configureExceptionHandling = null)
+        public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
+
+        public void Build()
         {
             var commandFields = _queueType
                 .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
@@ -33,8 +37,6 @@ namespace MassInstance.Configuration
                     .GetInterfaces()
                     .Any(i => i == typeof(ICommand)));
 
-            var composeConfigureHandlingActions = configureExceptionHandling;
-
             foreach (var commandField in commandFields)
             {
                 var commandType = commandField.FieldType;
@@ -42,18 +44,11 @@ namespace MassInstance.Configuration
 
                 var commandExceptionHandling = new CommandExceptionHandlingOptions();
 
-                if (CommandExceptionHanlingConfigActions.TryGetValue(
-                    commandType,
-                    out var configureExceptionHandlingForCommand))
-                {
-                    composeConfigureHandlingActions += configureExceptionHandlingForCommand;
-                }
-
-                composeConfigureHandlingActions?.Invoke(commandExceptionHandling);
+                ConfigureCommandExceptionHandling?.Invoke(commandExceptionHandling);
 
                 ExceptionResponseResolver.Map(commandType, commandExceptionHandling);
 
-                endpointConfigurator.Consumer(
+                _receiveEndpointConfigurator.Consumer(
                     consumerType, 
                     type => _consumerFactory.CreateConsumer(consumerType));
             }

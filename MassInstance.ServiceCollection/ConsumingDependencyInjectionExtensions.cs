@@ -13,15 +13,15 @@ namespace MassInstance.ServiceCollection
             serviceCollection.AddSingleton<IMassInstanceConsumerFactory, DependencyInjectionMassInstanceConsumerFactory>();
             serviceCollection.AddSingleton<IMassInstanceSagaConfigurator, DependencyInjectionMassInstanceSagaConfigurator>();
             serviceCollection
-                .AddSingleton<CompositionServiceConfigurator>();
+                .AddSingleton<CompositionServiceConfiguratorBuilder>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var compositionServiceConfiguration =
-                serviceProvider.GetRequiredService<CompositionServiceConfigurator>();
+                serviceProvider.GetRequiredService<CompositionServiceConfiguratorBuilder>();
 
             configureServices(compositionServiceConfiguration);
 
-            serviceCollection.AddSingleton<IRabbitMqBusCompositionServiceConfigurator>(compositionServiceConfiguration);
+            serviceCollection.AddSingleton<IRabbitMqBusCompositionServiceConfiguratorBuilder>(compositionServiceConfiguration);
             serviceCollection.AddSingleton<ICompositionServiceConfiguration>(compositionServiceConfiguration);
         }
     }

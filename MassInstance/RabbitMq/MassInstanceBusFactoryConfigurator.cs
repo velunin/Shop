@@ -12,9 +12,9 @@ namespace MassInstance.RabbitMq
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
 
-        private readonly IDictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>
+        private readonly IDictionary<Type, (IConfiguratorBuilder, Action<CommandExceptionHandlingOptions>)>
             _serviceConfigurators =
-                new Dictionary<Type, (IRabbitMqBusServiceConfigurator, Action<CommandExceptionHandlingOptions>)>();
+                new Dictionary<Type, (IConfiguratorBuilder, Action<CommandExceptionHandlingOptions>)>();
 
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
@@ -36,13 +36,15 @@ namespace MassInstance.RabbitMq
                 throw new ArgumentException($"Configuration for '{serviceType}' already exist");
             }
 
-            var serviceConfig = new ServiceConfigurator<TService>(
-                this,
-                _consumerFactory,
-                host);
+            //var serviceConfig = new ServiceConfigurator<TService>(
+            //    this,
+            //    _consumerFactory,
+            //    host);
 
 
             throw new NotImplementedException();
         }
+
+        private void ConfigureQueue
     }
 }
