@@ -9,9 +9,6 @@ namespace MassInstance.Configuration
         void Configure<TQueue>(
             Expression<Func<TService, TQueue>> queueSelector,
             Action<IQueueConfiguration<TQueue>> configureQueue = null) where TQueue : IQueueMap;
-
-        void ConfigureAsSaga<TQueue>(Expression<Func<TService, TQueue>> queueSelector, Type sagaInstanceType)
-            where TQueue : IQueueMap;
     }
 
     public interface IServiceConfiguration
@@ -22,13 +19,7 @@ namespace MassInstance.Configuration
             where TQueue : IQueueMap 
             where TService : IServiceMap;
 
-        void ConfigureAsSaga<TService, TQueue>(Expression<Func<TService, TQueue>> queueSelector, Type sagaInstanceType)
-            where TQueue : IQueueMap 
-            where TService : IServiceMap;
-
-        IQueueConfiguration GetConfigurationForQueue(Type queueType);
-
-        bool TryGetConfigurationForQueue(Type queueType, out IQueueConfiguration queueConfiguration);
+        bool TryGetQueueConfig(string queueName, out IQueueConfiguration queueConfiguration);
 
         Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
     }

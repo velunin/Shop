@@ -5,7 +5,7 @@ namespace MassInstance
 {
     public interface IMassInstanceConsumerFactory
     {
-        object CreateConsumer(Type commandType);
+        object CreateConsumer(Type consumerType);
 
         void CreateSaga(Type sagaType, IReceiveEndpointConfigurator receiveEndpointConfigurator);
     }

@@ -2,6 +2,7 @@
 using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
+using MassInstance.RabbitMq;
 using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration.Saga;
@@ -78,22 +79,25 @@ namespace Shop.Services.Order
                     provider.GetRequiredService<ShopDbContext>,
                     optimistic: true));
 
-            services.AddServiceHosts(cfg => cfg
-                .AddService<OrderServiceMap>(srvCfg =>
-                    srvCfg.ConfigureAsSaga(srv => srv.OrderServiceSaga, typeof(OrderSagaContext))));
-
-            services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-            {
-                var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
-
-                var host = cfg.Host(new Uri(rabbitConfig.Uri), h =>
+            services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
+                provider.GetRequiredService<IMassInstanceConsumerFactory>(),
+                busCfg =>
                 {
-                    h.Username(rabbitConfig.User);
-                    h.Password(rabbitConfig.Password);
-                });
-                
-                cfg.LoadServices(provider, host);
-            }));
+                    var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
+
+                    var host = busCfg.Host(new Uri(rabbitConfig.Uri), h =>
+                    {
+                        h.Username(rabbitConfig.User);
+                        h.Password(rabbitConfig.Password);
+                    });
+
+                    busCfg.AddService<OrderServiceMap>(host, srvCfg =>
+                    {
+                        srvCfg.Configure(
+                            serviceMap => serviceMap.OrderServiceSaga, 
+                            queueCfg => queueCfg.ConfigureSaga<OrderSagaContext>());
+                    });
+                }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
         }
