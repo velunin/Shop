@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
-using MassInstance.Cqrs.Commands;
+
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.RabbitMqTransport.Configurators;
@@ -14,10 +13,7 @@ namespace MassInstance.RabbitMq
     public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
-
-        private readonly IDictionary<Type, (IConfiguratorBuilder, Action<CommandExceptionHandlingOptions>)>
-            _serviceConfigurators =
-                new Dictionary<Type, (IConfiguratorBuilder, Action<CommandExceptionHandlingOptions>)>();
+        private readonly HashSet<Type> _serviceTypesHashSet = new HashSet<Type>();
 
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
@@ -34,28 +30,19 @@ namespace MassInstance.RabbitMq
         {
             var serviceType = typeof(TService);
 
-            if (_serviceConfigurators.ContainsKey(serviceType))
+            if (_serviceTypesHashSet.Contains(serviceType))
             {
                 throw new ArgumentException($"Configuration for '{serviceType}' already exist");
             }
 
-            var serviceConfiguration = new ServiceConfiguration<TService>();
+            _serviceTypesHashSet.Add(serviceType);
 
+            var serviceConfiguration = new ServiceConfiguration<TService>();
             configureService(serviceConfiguration);
 
-            var queueFields = serviceType
-                .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(f => f
-                    .FieldType
-                    .GetInterfaces()
-                    .Any(i => i == typeof(IQueueMap)));
-
-            foreach (var queueField in queueFields)
+            foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
             {
-                var queueName = ServiceMapHelper.ExtractQueueName(queueField);
-                var queueType = queueField.FieldType;
-
-                SetupQueue(serviceConfiguration, host, queueName, queueType);
+                SetupQueue(serviceConfiguration, host, queueInfo.Name, queueInfo.Type);
             }
 
             return this;
@@ -77,18 +64,9 @@ namespace MassInstance.RabbitMq
                     }
                 }
 
-                var commandFields = queueType
-                    .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(f => f
-                        .FieldType
-                        .GetInterfaces()
-                        .Any(i => i == typeof(ICommand)));
-
-                foreach (var commandField in commandFields)
+                foreach (var commandInfo in ServiceMapHelper.ExtractCommands(queueType))
                 {
-                    var commandType = commandField.FieldType;
-
-                    SetupCommand(queueConfiguration, serviceConfiguration, commandType);
+                    SetupCommand(queueConfiguration, serviceConfiguration, commandInfo.Type);
                 }
             });
         }
@@ -113,7 +91,7 @@ namespace MassInstance.RabbitMq
             ExceptionResponseResolver.Map(commandType, commandExceptionHandlingOptions);
 
             _consumerFactory.CreateConsumer(
-                ConfigurationHelper.CreateConsumerTypeByCommandType(commandType));
+                CommandConsumerTypeFactory.Create(commandType));
         }
     }
 }

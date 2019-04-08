@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace MassInstance
 {
-    public class ExceptionResponseResolver// : IExceptionResponseResolver
+    public class ExceptionResponseResolver
     {
         private static readonly ConcurrentDictionary<Type, CommandExceptionHandlingOptions> TypeToOptionsMap =
             new ConcurrentDictionary<Type, CommandExceptionHandlingOptions>();

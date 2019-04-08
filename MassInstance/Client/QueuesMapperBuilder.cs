@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using MassInstance.Configuration.ServiceMap;
-using MassInstance.Cqrs.Commands;
 
 namespace MassInstance.Client
 {
@@ -24,27 +21,11 @@ namespace MassInstance.Client
 
             foreach (var serviceType in _serviceTypes)
             {
-                var queueFields = serviceType
-                    .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(f => f
-                        .FieldType
-                        .GetInterfaces()
-                        .Any(i => i == typeof(IQueueMap)));
-
-                foreach (var queueField in queueFields)
+                foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
                 {
-                    var queueFieldType = queueField.FieldType;
-                    var queueName = ServiceMapHelper.ExtractQueueName(queueField);
-
-                    var commandFields = queueFieldType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                        .Where(f => f
-                            .FieldType
-                            .GetInterfaces()
-                            .Any(i => i == typeof(ICommand)));
-
-                    foreach (var commandField in commandFields)
+                    foreach (var commandInfo in ServiceMapHelper.ExtractCommands(queueInfo.Type))
                     {
-                        queuesMapper.Map(commandField.FieldType, queueName);
+                        queuesMapper.Map(commandInfo.Type, queueInfo.Name);
                     }
                 }
             }

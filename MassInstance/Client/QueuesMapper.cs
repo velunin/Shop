@@ -22,7 +22,6 @@ namespace MassInstance.Client
             return this;
         }
 
-
         public string GetQueueName(Type commandType)
         {
             return _map.TryGetValue(commandType, out var queueName) 
