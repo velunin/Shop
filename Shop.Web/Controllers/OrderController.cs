@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Shop.DataProjections.Queries;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;
-using Shop.Services.Common;
 using Shop.Web.Models;
 
 namespace Shop.Web.Controllers

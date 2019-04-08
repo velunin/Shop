@@ -16,7 +16,7 @@ using Microsoft.Extensions.Options;
 
 using Shop.DataAccess.EF;
 using Shop.Domain;
-using Shop.Services.Common.ErrorCodes;
+using Shop.Domain.ErrorCodes;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Cart
