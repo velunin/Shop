@@ -1,12 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-
+using MassInstance.Cqrs.Commands;
 using MassTransit;
 
 using Microsoft.EntityFrameworkCore;
-
-using Shop.Cqrs.Commands;
-
 using Shop.DataProjections.Models;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;

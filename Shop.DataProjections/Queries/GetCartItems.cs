@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Shop.Cqrs.Queries;
+using MassInstance.Cqrs.Queries;
 using Shop.DataProjections.Models;
 
 namespace Shop.DataProjections.Queries

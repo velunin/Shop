@@ -11,19 +11,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataAccess", "Shop.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataAccess.EF", "Shop.DataAccess.EF\Shop.DataAccess.EF.csproj", "{D4118D87-D494-4655-8A25-70557666983C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Infrastructure", "Shop.Infrastructure\Shop.Infrastructure.csproj", "{FAE72933-88DE-43AD-B5EE-0C7EEF6DD6B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassInstance", "MassInstance\MassInstance.csproj", "{FAE72933-88DE-43AD-B5EE-0C7EEF6DD6B2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.DataProjections", "Shop.DataProjections\Shop.DataProjections.csproj", "{EA942668-E036-4218-8549-A9B42DEB0986}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Services.Order", "Shop.Services.Order\Shop.Services.Order.csproj", "{14ECB10C-C69F-4157-BD82-733EFF5BD50A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Services.Common", "Shop.Services.Common\Shop.Services.Common.csproj", "{B0A49458-BCD8-4479-B0C2-13882ED72E04}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shop.Services.Cart", "Shop.Services.Cart\Shop.Services.Cart.csproj", "{C0B6C395-E9D8-4C47-86DF-5D2EB2CD719F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Endpoints", "Endpoints", "{D25ACCE3-7DF6-4A87-B8B9-0D24E79BC833}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop.Cqrs", "Shop.Cqrs\Shop.Cqrs.csproj", "{9C9B4DB8-A5A9-40BD-91A2-3A4A3A2D2D1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassInstance.Cqrs", "MassInstance.Cqrs\MassInstance.Cqrs.csproj", "{9C9B4DB8-A5A9-40BD-91A2-3A4A3A2D2D1C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MassInstance", "MassInstance", "{C5F47390-C043-4262-9BD9-95B2D335ADC8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassInstance.ServiceCollection", "MassInstance.ServiceCollection\MassInstance.ServiceCollection.csproj", "{08FC7962-4F0D-46D7-8304-B9CB2EAE3B07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,10 +61,6 @@ Global
 		{14ECB10C-C69F-4157-BD82-733EFF5BD50A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14ECB10C-C69F-4157-BD82-733EFF5BD50A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14ECB10C-C69F-4157-BD82-733EFF5BD50A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B0A49458-BCD8-4479-B0C2-13882ED72E04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0A49458-BCD8-4479-B0C2-13882ED72E04}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0A49458-BCD8-4479-B0C2-13882ED72E04}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0A49458-BCD8-4479-B0C2-13882ED72E04}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C0B6C395-E9D8-4C47-86DF-5D2EB2CD719F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C0B6C395-E9D8-4C47-86DF-5D2EB2CD719F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0B6C395-E9D8-4C47-86DF-5D2EB2CD719F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -71,14 +69,21 @@ Global
 		{9C9B4DB8-A5A9-40BD-91A2-3A4A3A2D2D1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C9B4DB8-A5A9-40BD-91A2-3A4A3A2D2D1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C9B4DB8-A5A9-40BD-91A2-3A4A3A2D2D1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08FC7962-4F0D-46D7-8304-B9CB2EAE3B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08FC7962-4F0D-46D7-8304-B9CB2EAE3B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08FC7962-4F0D-46D7-8304-B9CB2EAE3B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08FC7962-4F0D-46D7-8304-B9CB2EAE3B07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{46A1AC27-42F9-4A9E-AFD1-224D58234C8C} = {D25ACCE3-7DF6-4A87-B8B9-0D24E79BC833}
+		{FAE72933-88DE-43AD-B5EE-0C7EEF6DD6B2} = {C5F47390-C043-4262-9BD9-95B2D335ADC8}
 		{14ECB10C-C69F-4157-BD82-733EFF5BD50A} = {D25ACCE3-7DF6-4A87-B8B9-0D24E79BC833}
 		{C0B6C395-E9D8-4C47-86DF-5D2EB2CD719F} = {D25ACCE3-7DF6-4A87-B8B9-0D24E79BC833}
+		{9C9B4DB8-A5A9-40BD-91A2-3A4A3A2D2D1C} = {C5F47390-C043-4262-9BD9-95B2D335ADC8}
+		{08FC7962-4F0D-46D7-8304-B9CB2EAE3B07} = {C5F47390-C043-4262-9BD9-95B2D335ADC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BC535A29-AD39-4DB8-BD3B-49EED5B43F43}

@@ -1,10 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-
+using MassInstance.Cqrs.Commands;
 using Microsoft.EntityFrameworkCore;
-
-using Shop.Cqrs.Commands;
-
 using Shop.Domain.Commands.Cart;
 
 namespace Shop.DataAccess.EF.CommandHandlers.Cart

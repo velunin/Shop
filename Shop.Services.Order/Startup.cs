@@ -1,5 +1,9 @@
 ﻿using System;
 using AutoMapper;
+using MassInstance;
+using MassInstance.Client;
+using MassInstance.RabbitMq;
+using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration.Saga;
 using MassTransit.Saga;
@@ -14,9 +18,7 @@ using Microsoft.Extensions.Options;
 
 using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
-using Shop.Infrastructure;
-using Shop.Infrastructure.Extensions;
-using Shop.Services.Common;
+using Shop.Domain;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Services.Order
@@ -46,11 +48,11 @@ namespace Shop.Services.Order
 
             services.AddCommandAndQueryHandlers(
                 AppDomain.CurrentDomain.GetAssemblies(), 
-                ServiceLifetime.Scoped);
-
-            RegisterServiceBus(services);
+                ServiceLifetime.Transient);
 
             services.AddSingleton<IFakeMailService, FakeMailService>();
+
+            RegisterServiceBus(services);
 
             services.AddSingleton<IHostedService, ServiceBusBackgroundService>();
         }
@@ -77,26 +79,25 @@ namespace Shop.Services.Order
                     provider.GetRequiredService<ShopDbContext>,
                     optimistic: true));
 
-            services.AddServices(srvCfg =>
-            {
-                srvCfg
-                    .AddServiceEndpoint(
-                        ServicesQueues.OrderServiceSagaQueue,
-                        consumeCfg => consumeCfg.AddSaga<OrderSagaContext>());
-            });
-
-            services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-            {
-                var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
-
-                var host = cfg.Host(new Uri(rabbitConfig.Uri), h =>
+            services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
+                provider.GetRequiredService<IMassInstanceConsumerFactory>(),
+                busCfg =>
                 {
-                    h.Username(rabbitConfig.User);
-                    h.Password(rabbitConfig.Password);
-                });
-                
-                cfg.LoadServices(provider, host);
-            }));
+                    var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
+
+                    var host = busCfg.Host(new Uri(rabbitConfig.Uri), h =>
+                    {
+                        h.Username(rabbitConfig.User);
+                        h.Password(rabbitConfig.Password);
+                    });
+
+                    busCfg.AddService<OrderServiceMap>(host, srvCfg =>
+                    {
+                        srvCfg.Configure(
+                            serviceMap => serviceMap.OrderServiceSaga, 
+                            queueCfg => queueCfg.ConfigureSaga<OrderSagaContext>());
+                    });
+                }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
         }

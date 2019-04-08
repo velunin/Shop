@@ -2,19 +2,16 @@
 using System.Threading.Tasks;
 
 using Automatonymous;
-
+using MassInstance.Cqrs.Commands;
+using MassInstance.MessageContracts;
 using MassTransit;
 
 using Microsoft.Extensions.Logging;
-
-using Shop.Cqrs.Commands;
-
 using Shop.DataAccess.Dto;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;
+using Shop.Domain.ErrorCodes;
 using Shop.Domain.Events;
-using Shop.Services.Common.ErrorCodes;
-using Shop.Services.Common.MessageContracts;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
@@ -121,9 +118,10 @@ namespace Shop.Services.Order.Sagas
                                 .ConfigureAwait(false);
                         }
 
-                        //Do some compensative logic
+                        //Do some compensate logic
                     })
                     .TransitionTo(OrderCreationError),
+
                 When(OrderCreatingUnknownErrorEvent)
                     .ThenAsync(async context =>
                     {
@@ -144,7 +142,7 @@ namespace Shop.Services.Order.Sagas
                                 .ConfigureAwait(false);
                         }
 
-                        //Do some compensative logic
+                        //Do some compensate logic
                     })
                     .TransitionTo(OrderCreationError));
 

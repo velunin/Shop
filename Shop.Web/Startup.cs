@@ -10,20 +10,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 using AutoMapper;
 
+using MassInstance;
+using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
 
-using Microsoft.Extensions.Options;
-
-using Shop.DataAccess.Dto;
 using Shop.DataAccess.EF;
-using Shop.Domain.Commands.Cart;
-using Shop.Domain.Commands.Order;
-using Shop.Infrastructure;
-using Shop.Infrastructure.Extensions;
-using Shop.Services.Common;
+using Shop.Domain;
 
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
+using RabbitMqConfig = Shop.DataAccess.Dto.RabbitMqConfig;
 
 namespace Shop.Web
 {
@@ -50,7 +46,7 @@ namespace Shop.Web
             services.AddCqrs();
             services.AddCommandAndQueryHandlers(
                 AppDomain.CurrentDomain.GetAssemblies(),
-                ServiceLifetime.Scoped);
+                ServiceLifetime.Transient);
 
             RegisterServiceBus(services);
 
@@ -69,26 +65,27 @@ namespace Shop.Web
 
         private void RegisterServiceBus(IServiceCollection services)
         {
-            services.AddServiceClient(mapper =>
-                mapper
-                    .Map<CreateOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
-                    .Map<AddOrderContactsCommand>(ServicesQueues.OrderServiceSagaQueue)
-                    .Map<PayOrderCommand>(ServicesQueues.OrderServiceSagaQueue)
+            var rabbitMqConfig = Configuration.GetSection("RabbitMqConfig").Get<RabbitMqConfig>();
 
-                    .Map<AddOrUpdateProductInCart>(ServicesQueues.CartServiceCommandsQueue)
-                    .Map<DeleteProductFromCart>(ServicesQueues.CartServiceCommandsQueue)
-            );
+            services.AddServiceClient(
+                cfg => cfg
+                    .Add<CartServiceMap>()
+                    .Add<OrderServiceMap>(),
+                cfg =>
+                {
+                    cfg.Uri = rabbitMqConfig.Uri;
+                    cfg.User = rabbitMqConfig.User;
+                    cfg.Password = rabbitMqConfig.Password;
+                });
 
             services.AddMassTransit();
 
             services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
-                var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
-
-                cfg.Host(new Uri(rabbitConfig.Uri), h =>
+                cfg.Host(new Uri(rabbitMqConfig.Uri), h =>
                 {
-                    h.Username(rabbitConfig.User);
-                    h.Password(rabbitConfig.Password);
+                    h.Username(rabbitMqConfig.User);
+                    h.Password(rabbitMqConfig.Password);
                 });
             }));
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());

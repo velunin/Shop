@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shop.Cqrs\Shop.Cqrs.csproj" />
+    <ProjectReference Include="..\MassInstance.Cqrs\MassInstance.Cqrs.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.DataProjections\Shop.DataProjections.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
