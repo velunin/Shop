@@ -11,18 +11,6 @@ namespace MassInstance.ServiceCollection
             Action<ICompositionServiceConfiguration> configureServices)
         {
             serviceCollection.AddSingleton<IMassInstanceConsumerFactory, DependencyInjectionMassInstanceConsumerFactory>();
-            serviceCollection.AddSingleton<IMassInstanceSagaConfigurator, DependencyInjectionMassInstanceSagaConfigurator>();
-            serviceCollection
-                .AddSingleton<CompositionServiceConfiguratorBuilder>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            var compositionServiceConfiguration =
-                serviceProvider.GetRequiredService<CompositionServiceConfiguratorBuilder>();
-
-            configureServices(compositionServiceConfiguration);
-
-            serviceCollection.AddSingleton<IRabbitMqBusCompositionServiceConfiguratorBuilder>(compositionServiceConfiguration);
-            serviceCollection.AddSingleton<ICompositionServiceConfiguration>(compositionServiceConfiguration);
         }
     }
 }
