@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
-
+using MassTransit;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.RabbitMqTransport.Configurators;
@@ -66,7 +66,7 @@ namespace MassInstance.RabbitMq
 
                 foreach (var commandInfo in ServiceMapHelper.ExtractCommands(queueType))
                 {
-                    SetupCommand(queueConfiguration, serviceConfiguration, commandInfo.Type);
+                    SetupCommand(queueConfiguration, serviceConfiguration, endpointConfiguration, commandInfo.Type);
                 }
             });
         }
@@ -74,6 +74,7 @@ namespace MassInstance.RabbitMq
         private void SetupCommand(
             IQueueConfiguration queueConfiguration,
             IServiceConfiguration serviceConfiguration,
+            IRabbitMqReceiveEndpointConfigurator endpointConfigurator,
             Type commandType)
         {
             var configureExceptionHandling = queueConfiguration.ConfigureCommandExceptionHandling ??
@@ -86,12 +87,17 @@ namespace MassInstance.RabbitMq
                     commandConfiguration.ConfigureExceptionHandling ?? configureExceptionHandling;
             }
 
+            var consumerType = CommandConsumerTypeFactory.Create(commandType);
+            if (!_consumerFactory.TryCreateConsumer(consumerType, out var commandConsumer))
+            {
+                return;
+            }
+
             configureExceptionHandling?.Invoke(commandExceptionHandlingOptions);
 
             ExceptionResponseResolver.Map(commandType, commandExceptionHandlingOptions);
 
-            _consumerFactory.CreateConsumer(
-                CommandConsumerTypeFactory.Create(commandType));
+            endpointConfigurator.Consumer(consumerType, _ => commandConsumer);
         }
     }
 }

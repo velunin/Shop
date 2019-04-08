@@ -79,6 +79,8 @@ namespace Shop.Services.Order
                     provider.GetRequiredService<ShopDbContext>,
                     optimistic: true));
 
+            services.AddMassInstance();
+
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),
                 busCfg =>

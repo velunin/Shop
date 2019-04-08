@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using MassInstance.Cqrs.Commands;
 
 namespace MassInstance.Configuration.ServiceMap
 {
@@ -45,7 +46,7 @@ namespace MassInstance.Configuration.ServiceMap
                 .Where(f => f
                     .FieldType
                     .GetInterfaces()
-                    .Any(i => i == typeof(IQueueMap)))
+                    .Any(i => i == typeof(ICommand)))
                 .Select(f => new CommandInfo
                 {
                     Name = f.Name,

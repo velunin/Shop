@@ -1,5 +1,4 @@
 ﻿using System;
-using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,7 +6,7 @@ namespace MassInstance.ServiceCollection
 {
     public static class ConsumingDependencyInjectionExtensions
     {
-        public static void AddCommandConsumers(
+        public static void AddMassInstance(
             this IServiceCollection serviceCollection, 
             Action<CommandTypesExtractor> configureExtractor = null)
         {
