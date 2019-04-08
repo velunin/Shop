@@ -1,6 +1,6 @@
 ﻿using System;
 using MassInstance;
-using Shop.Services.Common.ErrorCodes;
+using Shop.Domain.ErrorCodes;
 
 namespace Shop.Services.Order
 {

@@ -10,8 +10,8 @@ using Microsoft.Extensions.Logging;
 using Shop.DataAccess.Dto;
 using Shop.Domain.Commands.Order;
 using Shop.Domain.Commands.Order.Results;
+using Shop.Domain.ErrorCodes;
 using Shop.Domain.Events;
-using Shop.Services.Common.ErrorCodes;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 

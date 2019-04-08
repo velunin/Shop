@@ -1,4 +1,4 @@
-﻿namespace Shop.Services.Common.ErrorCodes
+﻿namespace Shop.Domain.ErrorCodes
 {
     public enum OrderErrorCodes
     {
