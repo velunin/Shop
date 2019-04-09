@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using Automatonymous;
 using MassInstance.Cqrs;
 using MassInstance.Cqrs.Commands;
@@ -74,7 +76,7 @@ namespace MassInstance.ServiceCollection
             this IServiceCollection serviceCollection,
             Assembly fromAssembly,
             ServiceLifetime lifetime)
-        {
+        { 
             serviceCollection.AddSagaStateMachines(new[] { fromAssembly }, lifetime);
         }
     }
