@@ -10,6 +10,8 @@ namespace MassInstance.Configuration
         private readonly IDictionary<string, IQueueConfiguration> _queuesConfigurations =
             new Dictionary<string, IQueueConfiguration>();
 
+        public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
+
         public void Configure<TServiceMap, TQueue>(
             Expression<Func<TServiceMap, TQueue>> queueSelector,
             Action<IQueueConfiguration<TQueue>> configureQueue = null)
@@ -21,21 +23,19 @@ namespace MassInstance.Configuration
             Configure(ServiceMapHelper.ExtractQueueName(queueField), configureQueue);
         }
 
-        public bool TryGetQueueConfig(string queueName, out IQueueConfiguration queueConfiguration)
-        {
-            return _queuesConfigurations.TryGetValue(queueName, out queueConfiguration);
-        }
-
-        public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
-
         public void Configure<TQueue>(
             Expression<Func<TService, TQueue>> queueSelector,
             Action<IQueueConfiguration<TQueue>> configureQueue = null)
             where TQueue : IQueueMap
         {
-            var queueField = ((MemberExpression) queueSelector.Body).Member;
+            var queueField = ((MemberExpression)queueSelector.Body).Member;
 
             Configure(ServiceMapHelper.ExtractQueueName(queueField), configureQueue);
+        }
+
+        public bool TryGetQueueConfig(string queueName, out IQueueConfiguration queueConfiguration)
+        {
+            return _queuesConfigurations.TryGetValue(queueName, out queueConfiguration);
         }
 
         private void Configure<TQueue>(string queueName, Action<IQueueConfiguration<TQueue>> configureQueue = null) where TQueue : IQueueMap

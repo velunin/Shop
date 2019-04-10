@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
 using MassTransit;
+using MassTransit.NewIdProviders;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.RabbitMqTransport.Configurators;
@@ -13,7 +14,9 @@ namespace MassInstance.RabbitMq
     public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
-        private readonly HashSet<Type> _serviceTypesHashSet = new HashSet<Type>();
+
+        private readonly IDictionary<Type, ServiceConfigurationContext> _serviceConfigurations =
+            new Dictionary<Type, ServiceConfigurationContext>();
 
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
@@ -24,31 +27,52 @@ namespace MassInstance.RabbitMq
             _consumerFactory = consumerFactory;
         }
 
+        public new IBusControl CreateBus()
+        {
+            foreach (var (serviceType,serviceConfigurationContext) in _serviceConfigurations)
+            {
+                var host = serviceConfigurationContext.Host;
+                var serviceConfiguration = serviceConfigurationContext.Configuration;
+
+                foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
+                {
+                    CreateQueue(serviceConfiguration, host, queueInfo.Name, queueInfo.Type);
+                }
+            }
+
+            return base.CreateBus();
+        }
+
         public IMassInstanceBusFactoryConfigurator AddService<TService>(
             IRabbitMqHost host,
             Action<IServiceConfiguration<TService>> configureService) where TService : IServiceMap
         {
             var serviceType = typeof(TService);
 
-            if (_serviceTypesHashSet.Contains(serviceType))
+            if (_serviceConfigurations.ContainsKey(serviceType))
             {
-                throw new ArgumentException($"Configuration for '{serviceType}' already exist");
+                throw new ArgumentException($"Configuration for '{serviceType.Name}' already exist");
             }
-
-            _serviceTypesHashSet.Add(serviceType);
 
             var serviceConfiguration = new ServiceConfiguration<TService>();
+
             configureService(serviceConfiguration);
 
-            foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
+            var serviceConfigurationContext = new ServiceConfigurationContext
             {
-                SetupQueue(serviceConfiguration, host, queueInfo.Name, queueInfo.Type);
-            }
+
+            };
+
+            _serviceConfigurations.TryAdd(serviceType, new ServiceConfigurationContext
+            {
+                Host = host,
+                Configuration = serviceConfiguration
+            });
 
             return this;
         }
 
-        private void SetupQueue(
+        private void CreateQueue(
             IServiceConfiguration serviceConfiguration,
             IRabbitMqHost host, 
             string queueName, 
@@ -66,12 +90,12 @@ namespace MassInstance.RabbitMq
 
                 foreach (var commandInfo in ServiceMapHelper.ExtractCommands(queueType))
                 {
-                    SetupCommand(queueConfiguration, serviceConfiguration, endpointConfiguration, commandInfo.Type);
+                    CreateCommandConsumer(queueConfiguration, serviceConfiguration, endpointConfiguration, commandInfo.Type);
                 }
             });
         }
 
-        private void SetupCommand(
+        private void CreateCommandConsumer(
             IQueueConfiguration queueConfiguration,
             IServiceConfiguration serviceConfiguration,
             IRabbitMqReceiveEndpointConfigurator endpointConfigurator,
@@ -98,6 +122,13 @@ namespace MassInstance.RabbitMq
             ExceptionResponseResolver.Map(commandType, commandExceptionHandlingOptions);
 
             endpointConfigurator.Consumer(consumerType, _ => commandConsumer);
+        }
+
+        private class ServiceConfigurationContext
+        {
+            public IRabbitMqHost Host { get; set; }
+
+            public IServiceConfiguration Configuration { get; set; }
         }
     }
 }
