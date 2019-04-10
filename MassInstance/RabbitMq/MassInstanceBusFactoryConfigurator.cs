@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq.Expressions;
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
 using MassTransit;
-using MassTransit.NewIdProviders;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.RabbitMqTransport.Configurators;
@@ -15,8 +14,8 @@ namespace MassInstance.RabbitMq
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
 
-        private readonly IDictionary<Type, ServiceConfigurationContext> _serviceConfigurations =
-            new Dictionary<Type, ServiceConfigurationContext>();
+        private readonly IDictionary<Type, IRabbitMqServiceConfiguration> _serviceConfigurations =
+            new Dictionary<Type, IRabbitMqServiceConfiguration>();
 
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
@@ -29,10 +28,9 @@ namespace MassInstance.RabbitMq
 
         public new IBusControl CreateBus()
         {
-            foreach (var (serviceType,serviceConfigurationContext) in _serviceConfigurations)
+            foreach (var (serviceType,serviceConfiguration) in _serviceConfigurations)
             {
-                var host = serviceConfigurationContext.Host;
-                var serviceConfiguration = serviceConfigurationContext.Configuration;
+                var host = serviceConfiguration.Host;
 
                 foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
                 {
@@ -48,26 +46,11 @@ namespace MassInstance.RabbitMq
             Action<IServiceConfiguration<TService>> configureService) where TService : IServiceMap
         {
             var serviceType = typeof(TService);
-
-            if (_serviceConfigurations.ContainsKey(serviceType))
-            {
-                throw new ArgumentException($"Configuration for '{serviceType.Name}' already exist");
-            }
-
             var serviceConfiguration = new ServiceConfiguration<TService>();
 
             configureService(serviceConfiguration);
 
-            var serviceConfigurationContext = new ServiceConfigurationContext
-            {
-
-            };
-
-            _serviceConfigurations.TryAdd(serviceType, new ServiceConfigurationContext
-            {
-                Host = host,
-                Configuration = serviceConfiguration
-            });
+            _serviceConfigurations.Add(serviceType, new RabbitMqServiceConfiguration(host,serviceConfiguration));
 
             return this;
         }
@@ -130,5 +113,41 @@ namespace MassInstance.RabbitMq
 
             public IServiceConfiguration Configuration { get; set; }
         }
+    }
+
+    public interface IRabbitMqServiceConfiguration : IServiceConfiguration
+    {
+        IRabbitMqHost Host { get; }
+    }
+
+    public class RabbitMqServiceConfiguration : IRabbitMqServiceConfiguration
+    {
+        private readonly IServiceConfiguration _serviceConfiguration;
+
+        public RabbitMqServiceConfiguration(IRabbitMqHost host, IServiceConfiguration serviceConfiguration)
+        {
+            _serviceConfiguration = serviceConfiguration ?? throw new ArgumentNullException(nameof(serviceConfiguration));
+
+            Host = host ?? throw new ArgumentNullException(nameof(host));
+
+            ConfigureCommandExceptionHandling = _serviceConfiguration.ConfigureCommandExceptionHandling;
+        }
+
+        public void Configure<TService, TQueue>(
+            Expression<Func<TService, TQueue>> queueSelector, 
+            Action<IQueueConfiguration<TQueue>> configureQueue = null) 
+            where TService : IServiceMap where TQueue : IQueueMap
+        {
+            _serviceConfiguration.Configure(queueSelector, configureQueue);
+        }
+
+        public bool TryGetQueueConfig(string queueName, out IQueueConfiguration queueConfiguration)
+        {
+            return _serviceConfiguration.TryGetQueueConfig(queueName, out queueConfiguration);
+        }
+
+        public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
+
+        public IRabbitMqHost Host { get; }
     }
 }
