@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using MassTransit;
+using MassTransit.Configurators;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.Topology;
@@ -31,7 +32,16 @@ namespace MassInstance.RabbitMq
 
             configure(configurator);
 
-            return configurator.Build();
+            var result = BusConfigurationResult.CompileResults(configurator.Validate());
+
+            try
+            {
+                return configurator.CreateBus();
+            }
+            catch (Exception ex)
+            {
+                throw new ConfigurationException(result, "An exception occurred during bus creation", ex);
+            }
         }
 
         private static class Cached
