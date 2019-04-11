@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Automatonymous;
 using AutoMapper;
 using MassInstance;
 using MassInstance.Client;
@@ -70,6 +72,7 @@ namespace Shop.Services.Order
 
         private void RegisterServiceBus(IServiceCollection services)
         {
+            services.AddMassInstance();
             services.AddSagaStateMachines(
                 GetType().Assembly,
                 ServiceLifetime.Transient);

@@ -18,7 +18,14 @@ namespace MassInstance.ServiceCollection
 
         public object CreateConsumer(Type consumerType)
         {
-            return _serviceProvider.GetRequiredService(consumerType);
+            return _serviceProvider.GetService(consumerType);
+        }
+
+        public bool TryCreateConsumer(Type consumerType, out object consumer)
+        {
+            consumer = CreateConsumer(consumerType);
+
+            return consumer != null;
         }
 
         public void CreateSaga(Type sagaType, IReceiveEndpointConfigurator receiveEndpointConfigurator)

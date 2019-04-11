@@ -67,8 +67,7 @@ namespace Shop.Web
         {
             var rabbitMqConfig = Configuration.GetSection("RabbitMqConfig").Get<RabbitMqConfig>();
 
-            services.AddServiceClient(
-                cfg => cfg
+            services.AddServiceClient(cfg => cfg
                     .Add<CartServiceMap>()
                     .Add<OrderServiceMap>(),
                 cfg =>

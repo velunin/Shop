@@ -60,9 +60,6 @@ namespace MassInstance.Configuration
 
             var commandConfiguration = new CommandConfiguration();
             configureCommand?.Invoke(commandConfiguration);
-            commandConfiguration.ConfigureExceptionHandling =
-                ConfigureCommandExceptionHandling +
-                commandConfiguration.ConfigureExceptionHandling;
 
             _commandConfigurations.Add(commandType, commandConfiguration);
         }

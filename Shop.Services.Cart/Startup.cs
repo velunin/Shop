@@ -60,6 +60,8 @@ namespace Shop.Services.Cart
 
         private void RegisterServiceBus(IServiceCollection services)
         {
+            services.AddMassInstance(ext => ext.From<CartServiceMap>());
+
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),
                 busCfg =>
@@ -88,7 +90,6 @@ namespace Shop.Services.Cart
                                     queueCfg.Configure(
                                         x => x.DeleteProductFromCart, commandCfg =>
                                         {
-
                                             //Custom mapping exception to error codes for command
                                         });
 

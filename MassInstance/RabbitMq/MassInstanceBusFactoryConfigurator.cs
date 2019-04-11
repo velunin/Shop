@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using System.Reflection;
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
-
+using MassTransit;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.RabbitMqTransport.Configurators;
@@ -13,15 +14,41 @@ namespace MassInstance.RabbitMq
     public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
-        private readonly HashSet<Type> _serviceTypesHashSet = new HashSet<Type>();
+        private readonly ISagaMessageExtractor _sagaMessageExtractor;
+
+        private readonly IDictionary<Type, IRabbitMqServiceConfiguration> _serviceConfigurations =
+            new Dictionary<Type, IRabbitMqServiceConfiguration>();
+
+        private Assembly[] _sagaStateMachineAssemblies = AppDomain.CurrentDomain.GetAssemblies();
 
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
             IRabbitMqEndpointConfiguration busEndpointConfiguration, 
-            IMassInstanceConsumerFactory consumerFactory) 
+            IMassInstanceConsumerFactory consumerFactory, 
+            ISagaMessageExtractor sagaMessageExtractor) 
             : base(configuration, busEndpointConfiguration)
         {
             _consumerFactory = consumerFactory;
+            _sagaMessageExtractor = sagaMessageExtractor;
+        }
+
+        public new IBusControl CreateBus()
+        {
+            foreach (var (serviceType,serviceConfiguration) in _serviceConfigurations)
+            {
+                var host = serviceConfiguration.Host;
+
+                foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
+                {
+                    CreateQueue(
+                        serviceConfiguration, 
+                        host, 
+                        queueInfo.Name, 
+                        queueInfo.Type);
+                }
+            }
+
+            return base.CreateBus();
         }
 
         public IMassInstanceBusFactoryConfigurator AddService<TService>(
@@ -29,26 +56,21 @@ namespace MassInstance.RabbitMq
             Action<IServiceConfiguration<TService>> configureService) where TService : IServiceMap
         {
             var serviceType = typeof(TService);
+            var serviceConfiguration = new RabbitMqServiceConfiguration<TService>(host);
 
-            if (_serviceTypesHashSet.Contains(serviceType))
-            {
-                throw new ArgumentException($"Configuration for '{serviceType}' already exist");
-            }
-
-            _serviceTypesHashSet.Add(serviceType);
-
-            var serviceConfiguration = new ServiceConfiguration<TService>();
             configureService(serviceConfiguration);
 
-            foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
-            {
-                SetupQueue(serviceConfiguration, host, queueInfo.Name, queueInfo.Type);
-            }
+            _serviceConfigurations.Add(serviceType, serviceConfiguration);
 
             return this;
         }
 
-        private void SetupQueue(
+        public Assembly[] SagaStateMachineAssemblies
+        {
+            set => _sagaStateMachineAssemblies = value;
+        }
+
+        private void CreateQueue(
             IServiceConfiguration serviceConfiguration,
             IRabbitMqHost host, 
             string queueName, 
@@ -56,42 +78,63 @@ namespace MassInstance.RabbitMq
         {
             ReceiveEndpoint(host, queueName, endpointConfiguration =>
             {
+                var sagaMessageTypes = new HashSet<Type>();
+
                 if (serviceConfiguration.TryGetQueueConfig(queueName, out var queueConfiguration))
                 {
                     foreach (var sagaInstanceType in queueConfiguration.GetSagaInstanceTypes())
                     {
                         _consumerFactory.CreateSaga(sagaInstanceType, endpointConfiguration);
+
+                        sagaMessageTypes.UnionWith(
+                            _sagaMessageExtractor.Extract(
+                                sagaInstanceType, 
+                                _sagaStateMachineAssemblies));
                     }
                 }
 
-                foreach (var commandInfo in ServiceMapHelper.ExtractCommands(queueType))
+                //Retrieve commands from service map with excluding saga event types
+                var commands = ServiceMapHelper
+                    .ExtractCommands(queueType)
+                    .Where(command => !sagaMessageTypes.Contains(command.Type)); 
+
+                foreach (var commandInfo in commands)
                 {
-                    SetupCommand(queueConfiguration, serviceConfiguration, commandInfo.Type);
+                    CreateCommandConsumer(
+                        queueConfiguration,
+                        serviceConfiguration,
+                        endpointConfiguration,
+                        commandInfo.Type);
                 }
             });
         }
 
-        private void SetupCommand(
+        private void CreateCommandConsumer(
             IQueueConfiguration queueConfiguration,
             IServiceConfiguration serviceConfiguration,
+            IRabbitMqReceiveEndpointConfigurator endpointConfigurator,
             Type commandType)
         {
-            var configureExceptionHandling = queueConfiguration.ConfigureCommandExceptionHandling ??
-                                             serviceConfiguration.ConfigureCommandExceptionHandling;
             var commandExceptionHandlingOptions = new CommandExceptionHandlingOptions();
+
+            var configureExceptionHandling = 
+                serviceConfiguration.ConfigureCommandExceptionHandling + queueConfiguration.ConfigureCommandExceptionHandling;
 
             if (queueConfiguration.TryGetCommandConfig(commandType, out var commandConfiguration))
             {
-                configureExceptionHandling =
-                    commandConfiguration.ConfigureExceptionHandling ?? configureExceptionHandling;
+                configureExceptionHandling += commandConfiguration.ConfigureExceptionHandling;
+            }
+
+            var consumerType = CommandConsumerTypeFactory.Create(commandType);
+            if (!_consumerFactory.TryCreateConsumer(consumerType, out var commandConsumer))
+            {
+                return;
             }
 
             configureExceptionHandling?.Invoke(commandExceptionHandlingOptions);
 
             ExceptionResponseResolver.Map(commandType, commandExceptionHandlingOptions);
-
-            _consumerFactory.CreateConsumer(
-                CommandConsumerTypeFactory.Create(commandType));
+            endpointConfigurator.Consumer(consumerType, _ => commandConsumer);
         }
     }
 }
