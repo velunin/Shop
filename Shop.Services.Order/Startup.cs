@@ -72,11 +72,7 @@ namespace Shop.Services.Order
 
         private void RegisterServiceBus(IServiceCollection services)
         {
-            var type = typeof(SagaStateMachine<OrderSagaContext>);
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(p => type.IsAssignableFrom(p));
-
+            services.AddMassInstance();
             services.AddSagaStateMachines(
                 GetType().Assembly,
                 ServiceLifetime.Transient);
@@ -85,8 +81,6 @@ namespace Shop.Services.Order
                 new EntityFrameworkSagaRepository<OrderSagaContext>(
                     provider.GetRequiredService<ShopDbContext>,
                     optimistic: true));
-
-            services.AddMassInstance();
 
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),

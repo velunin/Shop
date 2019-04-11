@@ -90,7 +90,6 @@ namespace Shop.Services.Cart
                                     queueCfg.Configure(
                                         x => x.DeleteProductFromCart, commandCfg =>
                                         {
-
                                             //Custom mapping exception to error codes for command
                                         });
 

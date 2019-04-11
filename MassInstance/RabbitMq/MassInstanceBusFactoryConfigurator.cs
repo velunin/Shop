@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
+using System.Linq;
+using System.Reflection;
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
 using MassTransit;
@@ -13,17 +14,22 @@ namespace MassInstance.RabbitMq
     public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
+        private readonly ISagaMessageExtractor _sagaMessageExtractor;
 
         private readonly IDictionary<Type, IRabbitMqServiceConfiguration> _serviceConfigurations =
             new Dictionary<Type, IRabbitMqServiceConfiguration>();
 
+        private Assembly[] _sagaStateMachineAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
             IRabbitMqEndpointConfiguration busEndpointConfiguration, 
-            IMassInstanceConsumerFactory consumerFactory) 
+            IMassInstanceConsumerFactory consumerFactory, 
+            ISagaMessageExtractor sagaMessageExtractor) 
             : base(configuration, busEndpointConfiguration)
         {
             _consumerFactory = consumerFactory;
+            _sagaMessageExtractor = sagaMessageExtractor;
         }
 
         public new IBusControl CreateBus()
@@ -34,7 +40,11 @@ namespace MassInstance.RabbitMq
 
                 foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
                 {
-                    CreateQueue(serviceConfiguration, host, queueInfo.Name, queueInfo.Type);
+                    CreateQueue(
+                        serviceConfiguration, 
+                        host, 
+                        queueInfo.Name, 
+                        queueInfo.Type);
                 }
             }
 
@@ -46,13 +56,18 @@ namespace MassInstance.RabbitMq
             Action<IServiceConfiguration<TService>> configureService) where TService : IServiceMap
         {
             var serviceType = typeof(TService);
-            var serviceConfiguration = new ServiceConfiguration<TService>();
+            var serviceConfiguration = new RabbitMqServiceConfiguration<TService>(host);
 
             configureService(serviceConfiguration);
 
-            _serviceConfigurations.Add(serviceType, new RabbitMqServiceConfiguration(host,serviceConfiguration));
+            _serviceConfigurations.Add(serviceType, serviceConfiguration);
 
             return this;
+        }
+
+        public Assembly[] SagaStateMachineAssemblies
+        {
+            set => _sagaStateMachineAssemblies = value;
         }
 
         private void CreateQueue(
@@ -63,17 +78,33 @@ namespace MassInstance.RabbitMq
         {
             ReceiveEndpoint(host, queueName, endpointConfiguration =>
             {
+                var sagaMessageTypes = new HashSet<Type>();
+
                 if (serviceConfiguration.TryGetQueueConfig(queueName, out var queueConfiguration))
                 {
                     foreach (var sagaInstanceType in queueConfiguration.GetSagaInstanceTypes())
                     {
                         _consumerFactory.CreateSaga(sagaInstanceType, endpointConfiguration);
+
+                        sagaMessageTypes.UnionWith(
+                            _sagaMessageExtractor.Extract(
+                                sagaInstanceType, 
+                                _sagaStateMachineAssemblies));
                     }
                 }
 
-                foreach (var commandInfo in ServiceMapHelper.ExtractCommands(queueType))
+                //Retrieve commands from service map with excluding saga event types
+                var commands = ServiceMapHelper
+                    .ExtractCommands(queueType)
+                    .Where(command => !sagaMessageTypes.Contains(command.Type)); 
+
+                foreach (var commandInfo in commands)
                 {
-                    CreateCommandConsumer(queueConfiguration, serviceConfiguration, endpointConfiguration, commandInfo.Type);
+                    CreateCommandConsumer(
+                        queueConfiguration,
+                        serviceConfiguration,
+                        endpointConfiguration,
+                        commandInfo.Type);
                 }
             });
         }
@@ -84,14 +115,14 @@ namespace MassInstance.RabbitMq
             IRabbitMqReceiveEndpointConfigurator endpointConfigurator,
             Type commandType)
         {
-            var configureExceptionHandling = queueConfiguration.ConfigureCommandExceptionHandling ??
-                                             serviceConfiguration.ConfigureCommandExceptionHandling;
             var commandExceptionHandlingOptions = new CommandExceptionHandlingOptions();
+
+            var configureExceptionHandling = 
+                serviceConfiguration.ConfigureCommandExceptionHandling + queueConfiguration.ConfigureCommandExceptionHandling;
 
             if (queueConfiguration.TryGetCommandConfig(commandType, out var commandConfiguration))
             {
-                configureExceptionHandling =
-                    commandConfiguration.ConfigureExceptionHandling ?? configureExceptionHandling;
+                configureExceptionHandling += commandConfiguration.ConfigureExceptionHandling;
             }
 
             var consumerType = CommandConsumerTypeFactory.Create(commandType);
@@ -103,51 +134,7 @@ namespace MassInstance.RabbitMq
             configureExceptionHandling?.Invoke(commandExceptionHandlingOptions);
 
             ExceptionResponseResolver.Map(commandType, commandExceptionHandlingOptions);
-
             endpointConfigurator.Consumer(consumerType, _ => commandConsumer);
         }
-
-        private class ServiceConfigurationContext
-        {
-            public IRabbitMqHost Host { get; set; }
-
-            public IServiceConfiguration Configuration { get; set; }
-        }
-    }
-
-    public interface IRabbitMqServiceConfiguration : IServiceConfiguration
-    {
-        IRabbitMqHost Host { get; }
-    }
-
-    public class RabbitMqServiceConfiguration : IRabbitMqServiceConfiguration
-    {
-        private readonly IServiceConfiguration _serviceConfiguration;
-
-        public RabbitMqServiceConfiguration(IRabbitMqHost host, IServiceConfiguration serviceConfiguration)
-        {
-            _serviceConfiguration = serviceConfiguration ?? throw new ArgumentNullException(nameof(serviceConfiguration));
-
-            Host = host ?? throw new ArgumentNullException(nameof(host));
-
-            ConfigureCommandExceptionHandling = _serviceConfiguration.ConfigureCommandExceptionHandling;
-        }
-
-        public void Configure<TService, TQueue>(
-            Expression<Func<TService, TQueue>> queueSelector, 
-            Action<IQueueConfiguration<TQueue>> configureQueue = null) 
-            where TService : IServiceMap where TQueue : IQueueMap
-        {
-            _serviceConfiguration.Configure(queueSelector, configureQueue);
-        }
-
-        public bool TryGetQueueConfig(string queueName, out IQueueConfiguration queueConfiguration)
-        {
-            return _serviceConfiguration.TryGetQueueConfig(queueName, out queueConfiguration);
-        }
-
-        public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
-
-        public IRabbitMqHost Host { get; }
     }
 }

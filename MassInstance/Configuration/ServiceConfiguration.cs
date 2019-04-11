@@ -44,9 +44,6 @@ namespace MassInstance.Configuration
 
             var queueConfiguration = new QueueConfiguration<TQueue>();
             configureQueue?.Invoke(queueConfiguration);
-            queueConfiguration.ConfigureCommandExceptionHandling =
-                ConfigureCommandExceptionHandling +
-                queueConfiguration.ConfigureCommandExceptionHandling;
 
             _queuesConfigurations.Add(queueName, queueConfiguration);
         }

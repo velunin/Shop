@@ -21,13 +21,18 @@ namespace MassInstance.RabbitMq
             var busConfiguration = new RabbitMqBusConfiguration(topologyConfiguration);
             var busEndpointConfiguration = busConfiguration.CreateEndpointConfiguration();
 
-            var configurator = new MassInstanceBusFactoryConfigurator(busConfiguration, busEndpointConfiguration, consumerFactory);
+            var sagaMessageExtractor = new SagaMessageExtractor();
+
+            var configurator = new MassInstanceBusFactoryConfigurator(
+                busConfiguration, 
+                busEndpointConfiguration, 
+                consumerFactory, 
+                sagaMessageExtractor);
 
             configure(configurator);
 
             return configurator.Build();
         }
-
 
         private static class Cached
         {
