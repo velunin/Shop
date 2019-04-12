@@ -17,7 +17,7 @@ namespace MassInstance.Client
         private readonly IBus _bus;
         private readonly IQueuesMapper _mapper;
         private readonly ILogger _logger;
-        private readonly RabbitMqConfig _rabbitMqConfig;
+        private readonly BrokerConfig _brokerConfig;
 
         private const int DefaultTimeoutInSec = 30;
 
@@ -25,12 +25,12 @@ namespace MassInstance.Client
             IBus bus, 
             IQueuesMapper mapper,
             ILogger<ServiceClient> logger,
-            RabbitMqConfig rabbitMqConfig)
+            BrokerConfig brokerConfig)
         {
             _bus = bus;
             _mapper = mapper;
             _logger = logger;
-            _rabbitMqConfig = rabbitMqConfig;
+            _brokerConfig = brokerConfig;
         }
 
         public async Task ProcessAsync<TCommand>(
@@ -113,9 +113,15 @@ namespace MassInstance.Client
         private Uri BuildUriForCommand<TCommand>()
         {
             var queue = _mapper.GetQueueName<TCommand>();
-            var host = _rabbitMqConfig.Uri.Trim().TrimEnd('/');
+            var host = _brokerConfig.Uri.Trim().TrimEnd('/');
 
             return new Uri($"{host}/{queue}");
         }
+    }
+
+   public class MassInstanceRequestHandle<TResult>
+   {
+        private TaskCompletionSource<CommandResponse<TResult>> _completionSource = new TaskCompletionSource<CommandResponse<TResult>>();
+
     }
 }
