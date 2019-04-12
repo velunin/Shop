@@ -1,6 +1,6 @@
 ﻿namespace MassInstance.Configuration.Client
 {
-    public class RabbitMqConfig
+    public class BrokerConfig
     {
         public string Uri { get; set; }
 
