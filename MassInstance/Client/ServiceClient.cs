@@ -19,7 +19,7 @@ namespace MassInstance.Client
         private readonly ILogger _logger;
         private readonly RabbitMqConfig _rabbitMqConfig;
 
-        private const int DefaultTimeoutInSec = 15;
+        private const int DefaultTimeoutInSec = 30;
 
         public ServiceClient(
             IBus bus, 
