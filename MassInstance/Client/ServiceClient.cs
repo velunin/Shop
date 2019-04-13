@@ -13,6 +13,7 @@ namespace MassInstance.Client
     public class ServiceClient : IServiceClient
     {
         private readonly ConcurrentDictionary<Type, object> _requestClientsCache = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Guid,IResponseSetter> _handleResponseSetters = new ConcurrentDictionary<Guid, IResponseSetter>();
 
         private readonly IBus _bus;
         private readonly IQueuesMapper _mapper;
@@ -62,6 +63,14 @@ namespace MassInstance.Client
             CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, IResultingCommand<TResult>
         {
             return ProcessAsync<TCommand, TResult>(command, TimeSpan.FromSeconds(DefaultTimeoutInSec), cancellationToken);
+        }
+
+        public void SetResponse(Guid requestId, object response)
+        {
+            if(_handleResponseSetters.TryGetValue(requestId, out var setter))
+            {
+                setter.SetResponse(response);
+            }
         }
 
         private async Task<CommandResponse<TResult>> SendCommand<TCommand, TResult>(
@@ -119,9 +128,28 @@ namespace MassInstance.Client
         }
     }
 
-   public class MassInstanceRequestHandle<TResult>
-   {
-        private TaskCompletionSource<CommandResponse<TResult>> _completionSource = new TaskCompletionSource<CommandResponse<TResult>>();
+   internal class MassInstanceRequestHandle<TResult> : IResponseSetter
+    {
+        private readonly TaskCompletionSource<CommandResponse<TResult>> _completionSource = new TaskCompletionSource<CommandResponse<TResult>>();
 
+        public void SetResponse(object response)
+        {
+            if (!(response is CommandResponse<TResult> commandResponse))
+            {
+                throw new InvalidOperationException($"Command response must be {typeof(CommandResponse<TResult>)} type");
+            }
+
+            _completionSource.SetResult(commandResponse);
+        }
+
+        public Task<CommandResponse<TResult>> GetResponse()
+        {
+            return _completionSource.Task;
+        }
     }
+
+   internal interface IResponseSetter
+   {
+       void SetResponse(object response);
+   }
 }
