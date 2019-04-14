@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using MassInstance.Client;
 using MassInstance.Configuration;
 using MassInstance.Configuration.ServiceMap;
 using MassTransit;
@@ -11,7 +12,7 @@ using MassTransit.RabbitMqTransport.Configurators;
 
 namespace MassInstance.RabbitMq
 {
-    public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator
+    public class MassInstanceBusFactoryConfigurator : RabbitMqBusFactoryConfigurator, IMassInstanceBusFactoryConfigurator, IMassInstanceServiceClientConfigurator
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
         private readonly ISagaMessageExtractor _sagaMessageExtractor;
@@ -51,7 +52,12 @@ namespace MassInstance.RabbitMq
             return base.CreateBus();
         }
 
-        public IMassInstanceBusFactoryConfigurator AddService<TService>(
+        public IServiceClient CreateServiceClient()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMassInstanceBusFactoryConfigurator AddServiceHost<TService>(
             IRabbitMqHost host,
             Action<IServiceConfiguration<TService>> configureService) where TService : IServiceMap
         {
@@ -63,6 +69,12 @@ namespace MassInstance.RabbitMq
             _serviceConfigurations.Add(serviceType, serviceConfiguration);
 
             return this;
+        }
+
+        public void AddServiceClient(string callbackQueue, Action<IQueuesMapperBuilder> configureServices)
+        {
+  
+            
         }
 
         public Assembly[] SagaStateMachineAssemblies

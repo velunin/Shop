@@ -74,7 +74,7 @@ namespace Shop.Services.Cart
                         h.Password(rabbitConfig.Password);
                     });
 
-                    busCfg.AddService<CartServiceMap>(
+                    busCfg.AddServiceHost<CartServiceMap>(
                         host,
                         srvCfg =>
                         {

@@ -94,7 +94,7 @@ namespace Shop.Services.Order
                         h.Password(rabbitConfig.Password);
                     });
 
-                    busCfg.AddService<OrderServiceMap>(host, srvCfg =>
+                    busCfg.AddServiceHost<OrderServiceMap>(host, srvCfg =>
                     {
                         srvCfg.Configure(
                             serviceMap => serviceMap.OrderServiceSaga, 

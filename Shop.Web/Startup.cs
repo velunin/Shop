@@ -72,7 +72,7 @@ namespace Shop.Web
                     .Add<OrderServiceMap>(),
                 cfg =>
                 {
-                    cfg.Uri = rabbitMqConfig.Uri;
+                    cfg.BrokerUri = rabbitMqConfig.Uri;
                     cfg.User = rabbitMqConfig.User;
                     cfg.Password = rabbitMqConfig.Password;
                 });

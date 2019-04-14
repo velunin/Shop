@@ -10,10 +10,10 @@ namespace MassInstance.ServiceCollection
         public static void AddServiceClient(
             this IServiceCollection serviceCollection,
             Action<IQueuesMapperBuilder> configureBuilder,
-            Action<BrokerConfig> configureRabbitMq)
+            Action<SerivceClientConfig> configureRabbitMq)
         {
             var queuesMapperBuilder = new QueuesMapperBuilder();
-            var rabbitMqConfig = new BrokerConfig();
+            var rabbitMqConfig = new SerivceClientConfig();
 
             configureBuilder(queuesMapperBuilder);
             configureRabbitMq(rabbitMqConfig);

@@ -2,34 +2,27 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using MassInstance.Client;
 using MassInstance.Configuration.Client;
 using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
-using MassTransit;
-using Microsoft.Extensions.Logging;
 
-namespace MassInstance.Client
+namespace MassInstance.Bus
 {
-    public class ServiceClient : IServiceClient, IResponseReceiver
+    public partial class ServiceBus
     {
         private readonly ConcurrentDictionary<Guid, IRequestHandleResponseSetter> _handleResponseSetters = new ConcurrentDictionary<Guid, IRequestHandleResponseSetter>();
 
-        private readonly IBus _bus;
         private readonly IQueuesMapper _mapper;
-        private readonly ILogger _logger;
         private readonly SerivceClientConfig _serivceClientConfig;
 
         private const int DefaultTimeoutInSec = 30;
 
-        public ServiceClient(
-            IBus bus, 
-            IQueuesMapper mapper, 
-            ILogger<ServiceClient> logger, 
+        public ServiceBus(
+            IQueuesMapper mapper,
             SerivceClientConfig serivceClientConfig)
         {
-            _bus = bus;
             _mapper = mapper;
-            _logger = logger;
             _serivceClientConfig = serivceClientConfig;
         }
 
@@ -73,17 +66,17 @@ namespace MassInstance.Client
 
             var deleteHandleTask =
                 responseTask.ContinueWith(task =>
-                    {
-                        _logger.LogDebug($"Try remove request handle {requestId}");
+                {
+                    _log.Debug($"Try remove request handle {requestId}");
 
-                        if (_handleResponseSetters.TryRemove(requestId, out _))
-                        {
-                            _logger.LogDebug($"Request {requestId} was removed");
-                        }
-                    },
+                    if (_handleResponseSetters.TryRemove(requestId, out _))
+                    {
+                        _log.Debug($"Request {requestId} was removed");
+                    }
+                },
                     cancellationToken);
 
-            var sendEndpoint = await _bus.GetSendEndpoint(BuildUriForCommand<TCommand>());
+            var sendEndpoint = await GetSendEndpoint(BuildUriForCommand<TCommand>());
 
             await sendEndpoint.Send(command, cancellationToken);
 
@@ -99,7 +92,7 @@ namespace MassInstance.Client
 
             if (response.ErrorCode.HasValue)
             {
-                _logger.LogDebug($"Error response for command: {typeof(TCommand)}\r\n" +
+                _log.Debug($"Error response for command: {typeof(TCommand)}\r\n" +
                                  $"RequestId: {requestId}\r\n" +
                                  $"ErrorCode: {response.ErrorCode.Value}, Message: {response.ErrorMessage}");
 
@@ -131,7 +124,7 @@ namespace MassInstance.Client
         void ResponseCallback(Guid requestId, object response);
     }
 
-   internal class MassInstanceRequestHandle<TResult> : IRequestHandleResponseSetter
+    internal class MassInstanceRequestHandle<TResult> : IRequestHandleResponseSetter
     {
         private readonly TaskCompletionSource<CommandResponse<TResult>> _completionSource = new TaskCompletionSource<CommandResponse<TResult>>();
 
@@ -158,8 +151,8 @@ namespace MassInstance.Client
         }
     }
 
-   internal interface IRequestHandleResponseSetter
-   {
-       void SetResponse(object response);
-   }
+    internal interface IRequestHandleResponseSetter
+    {
+        void SetResponse(object response);
+    }
 }

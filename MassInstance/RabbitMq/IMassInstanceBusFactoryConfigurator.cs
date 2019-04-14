@@ -8,7 +8,7 @@ namespace MassInstance.RabbitMq
 {
     public interface IMassInstanceBusFactoryConfigurator : IRabbitMqBusFactoryConfigurator
     {
-        IMassInstanceBusFactoryConfigurator AddService<TService>(
+        IMassInstanceBusFactoryConfigurator AddServiceHost<TService>(
             IRabbitMqHost host,
             Action<IServiceConfiguration<TService>> configureService)
             where TService : IServiceMap;
