@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-
+using GreenPipes;
 using MassInstance.Client;
 using MassInstance.Configuration.Client;
 using MassInstance.Cqrs.Commands;
@@ -88,7 +88,14 @@ namespace MassInstance.Bus
 
             var sendEndpoint = await GetSendEndpoint(BuildUriForCommand<TCommand>());
 
-            await sendEndpoint.Send(command, cancellationToken);
+            var responseAddress = new Uri(_serivceClientConfig.BrokerUri, _serivceClientConfig.CallbackQueue)
+                .OriginalString;
+
+            await sendEndpoint.Send(command,context=>
+            {
+                context.Headers.Set("requestId", requestId.ToString());
+                context.Headers.Set("responseAddress", responseAddress);
+            }, cancellationToken);
 
             var responseWithDeleteHandleTask = Task.WhenAll(responseTask, deleteHandleTask);
 

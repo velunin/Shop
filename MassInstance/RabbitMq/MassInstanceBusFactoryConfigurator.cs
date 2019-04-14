@@ -43,6 +43,7 @@ namespace MassInstance.RabbitMq
         public new IServiceBus CreateBus()
         {
             CreateServiceConsumers();
+            CreateCallbackConsumers();
 
             var serviceBus = new ServiceBus(
                 base.CreateBus(),
@@ -80,8 +81,7 @@ namespace MassInstance.RabbitMq
             _callbackQueueName = callbackQueue;
             _callbackHost = callbackHost;
 
-            var serviceConfigurator = new ServiceClientConfigurator();
-            configureServiceClient(serviceConfigurator);
+            configureServiceClient(_serviceConfigurator);
         }
 
         public Assembly[] SagaStateMachineAssemblies
@@ -104,6 +104,30 @@ namespace MassInstance.RabbitMq
                         queueInfo.Type);
                 }
             }
+        }
+
+        private void CreateCallbackConsumers()
+        {
+            if (_callbackHost == null)
+            {
+                return;
+            }
+
+            var commandResultTypes = _serviceConfigurator
+                .GetServices()
+                .SelectMany(ServiceMapHelper.ExtractCommandResultTypes);
+
+            ReceiveEndpoint(_callbackHost, _callbackQueueName, endpointCfg =>
+            {
+                foreach (var resultType in commandResultTypes)
+                {
+                    var callbackConsumerType = CommandConsumerTypeFactory.CreateCallbackConsumer(resultType);
+                    
+                    endpointCfg.Consumer(
+                        callbackConsumerType, 
+                        _ => _consumerFactory.CreateConsumer(callbackConsumerType));
+                }
+            }); 
         }
 
         private void CreateQueue(
