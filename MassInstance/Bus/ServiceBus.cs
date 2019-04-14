@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using GreenPipes;
+
 using MassTransit;
 using MassTransit.Logging;
 using MassTransit.Topology;
@@ -11,7 +13,7 @@ namespace MassInstance.Bus
     public partial class ServiceBus : IServiceBus
     {
         private readonly ILog _log = Logger.Get<ServiceBus>();
-        public readonly IBusControl _busControl;
+        private readonly IBusControl _busControl;
 
         public ServiceBus(IBusControl busControl)
         {

@@ -4,22 +4,37 @@ using System.Linq;
 
 namespace MassInstance.Configuration.ServiceMap
 {
-    public class CommandTypesExtractor
+    public class CommandTypesExtractor : ICommandTypesExtractor
     {
-        private readonly List<Type> _services = new List<Type>();
+        private readonly List<Type> _consumerServices = new List<Type>();
+        private readonly List<Type> _publishServices = new List<Type>();
 
-        public CommandTypesExtractor From<TService>() where TService : IServiceMap
+        public ICommandTypesExtractor ConsumersFrom<TService>() where TService : IServiceMap
         {
-            _services.Add(typeof(TService));
+            _consumerServices.Add(typeof(TService));
 
             return this;
         }
 
-        public IEnumerable<Type> Extract()
+        public ICommandTypesExtractor ResultTypesFrom<TService>() where TService : IServiceMap
         {
-            return _services
-                .Select(ServiceMapHelper.ExtractAllServiceCommands)
+            _publishServices.Add(typeof(TService));
+            return this;
+        }
+
+        public IEnumerable<Type> ExtractCommands()
+        {
+            return _consumerServices
+                .Select(ServiceMapHelper.ExtractServiceCommands)
                 .SelectMany(x => x.Select(t => t.Type))
+                .Distinct();
+        }
+
+        public IEnumerable<Type> ExtractResultTypes()
+        {
+            return _consumerServices
+                .Select(ServiceMapHelper.ExtractServiceCommandsResults)
+                .SelectMany(x => x)
                 .Distinct();
         }
     }

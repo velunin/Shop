@@ -3,6 +3,7 @@ using System.Linq;
 using Automatonymous;
 using AutoMapper;
 using MassInstance;
+using MassInstance.Bus;
 using MassInstance.Client;
 using MassInstance.RabbitMq;
 using MassInstance.ServiceCollection;
@@ -102,7 +103,8 @@ namespace Shop.Services.Order
                     });
                 }));
 
-            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
+            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IServiceBus>());
+            services.AddSingleton<IBusControl>(provider => provider.GetRequiredService<IServiceBus>());
         }
     }
 }

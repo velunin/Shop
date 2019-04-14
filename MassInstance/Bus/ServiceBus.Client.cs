@@ -2,16 +2,19 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+
 using MassInstance.Client;
 using MassInstance.Configuration.Client;
 using MassInstance.Cqrs.Commands;
 using MassInstance.MessageContracts;
+using MassTransit;
 
 namespace MassInstance.Bus
 {
     public partial class ServiceBus
     {
-        private readonly ConcurrentDictionary<Guid, IRequestHandleResponseSetter> _handleResponseSetters = new ConcurrentDictionary<Guid, IRequestHandleResponseSetter>();
+        private readonly ConcurrentDictionary<Guid, IRequestHandleResponseSetter> _handleResponseSetters =
+            new ConcurrentDictionary<Guid, IRequestHandleResponseSetter>();
 
         private readonly IQueuesMapper _mapper;
         private readonly SerivceClientConfig _serivceClientConfig;
@@ -19,11 +22,13 @@ namespace MassInstance.Bus
         private const int DefaultTimeoutInSec = 30;
 
         public ServiceBus(
+            IBusControl busControl,
             IQueuesMapper mapper,
             SerivceClientConfig serivceClientConfig)
         {
-            _mapper = mapper;
-            _serivceClientConfig = serivceClientConfig;
+            _busControl = busControl ?? throw new ArgumentNullException(nameof(busControl));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _serivceClientConfig = serivceClientConfig ?? throw new ArgumentNullException(nameof(serivceClientConfig));
         }
 
         public Task ProcessAsync<TCommand>(TCommand command, TimeSpan timeout,
@@ -32,21 +37,26 @@ namespace MassInstance.Bus
             return SendCommand<TCommand, EmptyResult>(command, timeout, cancellationToken);
         }
 
-        public Task ProcessAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, ICommand
+        public Task ProcessAsync<TCommand>(TCommand command,
+            CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, ICommand
         {
-            return SendCommand<TCommand, EmptyResult>(command, TimeSpan.FromSeconds(DefaultTimeoutInSec), cancellationToken);
+            return SendCommand<TCommand, EmptyResult>(command, TimeSpan.FromSeconds(DefaultTimeoutInSec),
+                cancellationToken);
         }
 
         public Task<TResult> ProcessAsync<TCommand, TResult>(TCommand command, TimeSpan timeout,
-            CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, IResultingCommand<TResult>
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TCommand : class, IResultingCommand<TResult>
         {
             return SendCommand<TCommand, TResult>(command, timeout, cancellationToken);
         }
 
         public Task<TResult> ProcessAsync<TCommand, TResult>(TCommand command,
-            CancellationToken cancellationToken = default(CancellationToken)) where TCommand : class, IResultingCommand<TResult>
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TCommand : class, IResultingCommand<TResult>
         {
-            return SendCommand<TCommand, TResult>(command, TimeSpan.FromSeconds(DefaultTimeoutInSec), cancellationToken);
+            return SendCommand<TCommand, TResult>(command, TimeSpan.FromSeconds(DefaultTimeoutInSec),
+                cancellationToken);
         }
 
         private async Task<TResult> SendCommand<TCommand, TResult>(
@@ -66,14 +76,14 @@ namespace MassInstance.Bus
 
             var deleteHandleTask =
                 responseTask.ContinueWith(task =>
-                {
-                    _log.Debug($"Try remove request handle {requestId}");
-
-                    if (_handleResponseSetters.TryRemove(requestId, out _))
                     {
-                        _log.Debug($"Request {requestId} was removed");
-                    }
-                },
+                        _log.Debug($"Try remove request handle {requestId}");
+
+                        if (_handleResponseSetters.TryRemove(requestId, out _))
+                        {
+                            _log.Debug($"Request {requestId} was removed");
+                        }
+                    },
                     cancellationToken);
 
             var sendEndpoint = await GetSendEndpoint(BuildUriForCommand<TCommand>());
@@ -85,6 +95,7 @@ namespace MassInstance.Bus
             if (responseWithDeleteHandleTask != await Task.WhenAny(responseWithDeleteHandleTask, delayedTask))
             {
                 requestHandle.SetCancelled();
+
                 throw new TimeoutException("Request timed out");
             }
 
@@ -93,8 +104,8 @@ namespace MassInstance.Bus
             if (response.ErrorCode.HasValue)
             {
                 _log.Debug($"Error response for command: {typeof(TCommand)}\r\n" +
-                                 $"RequestId: {requestId}\r\n" +
-                                 $"ErrorCode: {response.ErrorCode.Value}, Message: {response.ErrorMessage}");
+                           $"RequestId: {requestId}\r\n" +
+                           $"ErrorCode: {response.ErrorCode.Value}, Message: {response.ErrorMessage}");
 
                 throw new ServiceException(response.ErrorMessage, response.ErrorCode.Value);
             }
@@ -113,46 +124,8 @@ namespace MassInstance.Bus
         private Uri BuildUriForCommand<TCommand>()
         {
             var queue = _mapper.GetQueueName<TCommand>();
-            var host = _serivceClientConfig.BrokerUri.Trim().TrimEnd('/');
 
-            return new Uri($"{host}/{queue}");
+            return new Uri(_serivceClientConfig.BrokerUri, queue);
         }
-    }
-
-    public interface IResponseReceiver
-    {
-        void ResponseCallback(Guid requestId, object response);
-    }
-
-    internal class MassInstanceRequestHandle<TResult> : IRequestHandleResponseSetter
-    {
-        private readonly TaskCompletionSource<CommandResponse<TResult>> _completionSource = new TaskCompletionSource<CommandResponse<TResult>>();
-
-        public void SetResponse(object response)
-        {
-            if (!(response is CommandResponse<TResult> commandResponse))
-            {
-                throw new InvalidOperationException($"Command response must be {typeof(CommandResponse<TResult>)} type");
-            }
-
-            _completionSource.SetResult(commandResponse);
-        }
-
-        public Task<CommandResponse<TResult>> GetResponse(CancellationToken cancellationToken)
-        {
-            cancellationToken.Register(() => _completionSource.TrySetCanceled(), false);
-
-            return _completionSource.Task;
-        }
-
-        public void SetCancelled()
-        {
-            _completionSource.SetCanceled();
-        }
-    }
-
-    internal interface IRequestHandleResponseSetter
-    {
-        void SetResponse(object response);
     }
 }

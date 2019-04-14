@@ -28,5 +28,7 @@ namespace MassInstance.Client
             TCommand command,
             CancellationToken cancellationToken = default(CancellationToken))
             where TCommand : class, IResultingCommand<TResult>;
+
+        void ResponseCallback(Guid requestId, object response);
     }
 }

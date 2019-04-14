@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using MassInstance.Bus;
 using MassTransit;
 using MassTransit.Configurators;
 using MassTransit.RabbitMqTransport;
@@ -14,7 +15,7 @@ namespace MassInstance.RabbitMq
     {
         public static IMessageTopologyConfigurator MessageTopology => Cached.MessageTopologyValue.Value;
 
-        public static IBusControl Create(
+        public static IServiceBus Create(
             Action<IMassInstanceBusFactoryConfigurator> configure, 
             IMassInstanceConsumerFactory consumerFactory)
         {

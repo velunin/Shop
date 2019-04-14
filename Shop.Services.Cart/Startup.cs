@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using MassInstance;
+using MassInstance.Bus;
 using MassInstance.RabbitMq;
 using MassInstance.ServiceCollection;
 using MassTransit;
@@ -60,7 +61,7 @@ namespace Shop.Services.Cart
 
         private void RegisterServiceBus(IServiceCollection services)
         {
-            services.AddMassInstance(ext => ext.From<CartServiceMap>());
+            services.AddMassInstance(ext => ext.ConsumersFrom<CartServiceMap>());
 
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),
@@ -109,7 +110,8 @@ namespace Shop.Services.Cart
                         });
                 }));
 
-            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
+            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IServiceBus>());
+            services.AddSingleton<IBusControl>(provider => provider.GetRequiredService<IServiceBus>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

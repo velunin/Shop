@@ -1,10 +1,11 @@
 ﻿using System;
 using MassInstance.Client;
+using MassInstance.Configuration.Client;
 
 namespace MassInstance.Configuration
 {
     public interface IMassInstanceServiceClientConfigurator
     {
-        void AddServiceClient(string callbackQueue, Action<IQueuesMapperBuilder> configureServices);
+        void AddServiceClient(SerivceClientConfig config, Action<IQueuesMapperBuilder> configureMapperBuilder);
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using MassInstance.Cqrs.Commands;
+using MassInstance.MessageContracts;
 
 namespace MassInstance.Configuration.ServiceMap
 {
@@ -54,9 +55,37 @@ namespace MassInstance.Configuration.ServiceMap
                 });
         }
 
-        public static IEnumerable<CommandInfo> ExtractAllServiceCommands(Type serviceMapType)
+        public static IEnumerable<Type> ExtractCommandResultTypes(Type queueMapType)
+        {
+            var commandInfos = ExtractCommands(queueMapType);
+
+            foreach (var commandInfo in commandInfos)
+            {
+                yield return GetCommandResultType(commandInfo.Type);
+            }
+        }
+
+        public static IEnumerable<CommandInfo> ExtractServiceCommands(Type serviceMapType)
         {
             return ExtractQueues(serviceMapType).SelectMany(q => ExtractCommands(q.Type));
+        }
+
+        public static IEnumerable<Type> ExtractServiceCommandsResults(Type serviceMapType)
+        {
+            return ExtractQueues(serviceMapType).SelectMany(q => ExtractCommandResultTypes(q.Type));
+        }
+
+        private static Type GetCommandResultType(Type commandType)
+        {
+            var resultType = commandType.GetInterfaces()
+                .Where(i =>
+                    i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IResultingCommand<>))
+                .Select(i => i.GetGenericArguments().FirstOrDefault())
+                .FirstOrDefault();
+
+            return resultType != null
+                ? resultType
+                : typeof(EmptyResult);
         }
     }
 }

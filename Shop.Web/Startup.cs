@@ -11,6 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
 
 using MassInstance;
+using MassInstance.Bus;
+using MassInstance.Client;
+using MassInstance.Configuration.Client;
+using MassInstance.RabbitMq;
 using MassInstance.ServiceCollection;
 using MassTransit;
 using MassTransit.ExtensionsDependencyInjectionIntegration;
@@ -67,27 +71,31 @@ namespace Shop.Web
         {
             var rabbitMqConfig = Configuration.GetSection("RabbitMqConfig").Get<RabbitMqConfig>();
 
-            services.AddServiceClient(cfg => cfg
-                    .Add<CartServiceMap>()
-                    .Add<OrderServiceMap>(),
+            services.AddMassInstance();
+
+            services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
+                provider.GetRequiredService<IMassInstanceConsumerFactory>(),
                 cfg =>
                 {
-                    cfg.BrokerUri = rabbitMqConfig.Uri;
-                    cfg.User = rabbitMqConfig.User;
-                    cfg.Password = rabbitMqConfig.Password;
-                });
+                    var rabbitHost = cfg.Host(new Uri(rabbitMqConfig.Uri), h =>
+                    {
+                        h.Username(rabbitMqConfig.User);
+                        h.Password(rabbitMqConfig.Password);
+                    });
 
-            services.AddMassTransit();
+                    cfg.AddServiceClient(
+                        rabbitHost,
+                        "frontend-web-callback",
+                        configurator =>
+                        {
+                            configurator.AddService<CartServiceMap>();
+                            configurator.AddService<OrderServiceMap>();
+                        });
+                }));
 
-            services.AddSingleton(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-            {
-                cfg.Host(new Uri(rabbitMqConfig.Uri), h =>
-                {
-                    h.Username(rabbitMqConfig.User);
-                    h.Password(rabbitMqConfig.Password);
-                });
-            }));
-            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IBusControl>());
+            services.AddSingleton<IBus>(provider => provider.GetRequiredService<IServiceBus>());
+            services.AddSingleton<IBusControl>(provider => provider.GetRequiredService<IServiceBus>());
+            services.AddSingleton<IServiceClient>(provider => provider.GetRequiredService<IServiceBus>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
