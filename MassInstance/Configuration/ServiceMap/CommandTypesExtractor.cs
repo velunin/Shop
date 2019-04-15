@@ -1,26 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MassInstance.Configuration.ServiceMap
 {
-    public class CommandTypesExtractor
+    public class CommandTypesExtractor : ICommandTypesExtractor
     {
-        private readonly List<Type> _services = new List<Type>();
+        private readonly HashSet<Type> _commandTypes = new HashSet<Type>();
+        private readonly HashSet<Type> _commandResultTypes = new HashSet<Type>();
 
-        public CommandTypesExtractor From<TService>() where TService : IServiceMap
+        public ICommandTypesExtractor ConsumersFrom<TService>() where TService : IServiceMap
         {
-            _services.Add(typeof(TService));
+            foreach (var commandInfo in ServiceMapHelper.ExtractServiceCommands(typeof(TService)))
+            {
+                if (!_commandTypes.Contains(commandInfo.Type))
+                {
+                    _commandTypes.Add(commandInfo.Type);
+                }
+            }
 
             return this;
         }
 
-        public IEnumerable<Type> Extract()
+        public ICommandTypesExtractor ResultTypesFrom<TService>() where TService : IServiceMap
         {
-            return _services
-                .Select(ServiceMapHelper.ExtractAllServiceCommands)
-                .SelectMany(x => x.Select(t => t.Type))
-                .Distinct();
+
+            foreach (var commandResultType in ServiceMapHelper.ExtractServiceCommandsResults(typeof(TService)))
+            {
+                if (!_commandResultTypes.Contains(commandResultType))
+                {
+                    _commandResultTypes.Add(commandResultType);
+                }
+            }
+
+            return this;
+        }
+
+        public IEnumerable<Type> ExtractCommands()
+        {
+            return _commandTypes;
+        }
+
+        public IEnumerable<Type> ExtractResultTypes()
+        {
+            return _commandResultTypes;
         }
     }
 }

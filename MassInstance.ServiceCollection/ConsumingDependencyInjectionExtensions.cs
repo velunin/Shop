@@ -1,5 +1,6 @@
 ﻿using System;
 using MassInstance.Configuration.ServiceMap;
+using MassTransit.ExtensionsDependencyInjectionIntegration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MassInstance.ServiceCollection
@@ -8,16 +9,22 @@ namespace MassInstance.ServiceCollection
     {
         public static void AddMassInstance(
             this IServiceCollection serviceCollection,
-            Action<CommandTypesExtractor> configureExtractor = null)
+            Action<ICommandTypesExtractor> configureExtractor = null)
         {
+            serviceCollection.AddMassTransit();
             serviceCollection.AddSingleton<IMassInstanceConsumerFactory, DependencyInjectionMassInstanceConsumerFactory>();
 
             var commandTypesExtractor = new CommandTypesExtractor();
             configureExtractor?.Invoke(commandTypesExtractor);
 
-            foreach (var commandType in commandTypesExtractor.Extract())
+            foreach (var commandType in commandTypesExtractor.ExtractCommands())
             {
                 serviceCollection.AddScoped(CommandConsumerTypeFactory.Create(commandType));
+            }
+
+            foreach (var resultType in commandTypesExtractor.ExtractResultTypes())
+            {
+                serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCallbackConsumer(resultType));
             }
         }
     }

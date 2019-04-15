@@ -10,6 +10,7 @@ namespace MassInstance.Client
         {
             ErrorCode = code;
         }
+
         public ServiceException(string message, Exception inner, int code) : base(message, inner)
         {
             ErrorCode = code;

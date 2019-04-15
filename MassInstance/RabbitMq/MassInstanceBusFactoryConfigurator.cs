@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using MassInstance.Bus;
+using MassInstance.Client;
 using MassInstance.Configuration;
+using MassInstance.Configuration.Client;
 using MassInstance.Configuration.ServiceMap;
 using MassTransit;
 using MassTransit.RabbitMqTransport;
@@ -15,11 +18,16 @@ namespace MassInstance.RabbitMq
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
         private readonly ISagaMessageExtractor _sagaMessageExtractor;
+        private readonly IServiceClientConfigurator _serviceClientConfigurator = new ServiceClientConfigurator();
 
         private readonly IDictionary<Type, IRabbitMqServiceConfiguration> _serviceConfigurations =
             new Dictionary<Type, IRabbitMqServiceConfiguration>();
 
         private Assembly[] _sagaStateMachineAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+        private IRabbitMqHost _callbackHost;
+
+        private string _callbackQueueName;
 
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
@@ -32,26 +40,24 @@ namespace MassInstance.RabbitMq
             _sagaMessageExtractor = sagaMessageExtractor;
         }
 
-        public new IBusControl CreateBus()
+        public new IServiceBus CreateBus()
         {
-            foreach (var (serviceType,serviceConfiguration) in _serviceConfigurations)
-            {
-                var host = serviceConfiguration.Host;
+            CreateServiceConsumers();
+            CreateCallbackConsumers();
 
-                foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
+            var serviceBus = new ServiceBus(
+                base.CreateBus(),
+                _serviceClientConfigurator.BuildQueueMapper(),
+                new SerivceClientConfig
                 {
-                    CreateQueue(
-                        serviceConfiguration, 
-                        host, 
-                        queueInfo.Name, 
-                        queueInfo.Type);
-                }
-            }
+                    BrokerUri = _callbackHost?.Address,
+                    CallbackQueue = _callbackQueueName
+                });
 
-            return base.CreateBus();
+            return serviceBus;
         }
 
-        public IMassInstanceBusFactoryConfigurator AddService<TService>(
+        public IMassInstanceBusFactoryConfigurator AddServiceHost<TService>(
             IRabbitMqHost host,
             Action<IServiceConfiguration<TService>> configureService) where TService : IServiceMap
         {
@@ -65,9 +71,63 @@ namespace MassInstance.RabbitMq
             return this;
         }
 
+        public void AddServiceClient(IRabbitMqHost callbackHost, string callbackQueue, Action<IServiceClientConfigurator> configureServiceClient)
+        {
+            if (string.IsNullOrEmpty(callbackQueue))
+            {
+                throw new ArgumentNullException(callbackQueue);
+            }
+
+            _callbackQueueName = callbackQueue;
+            _callbackHost = callbackHost;
+
+            configureServiceClient(_serviceClientConfigurator);
+        }
+
         public Assembly[] SagaStateMachineAssemblies
         {
             set => _sagaStateMachineAssemblies = value;
+        }
+
+        private void CreateServiceConsumers()
+        {
+            foreach (var (serviceType, serviceConfiguration) in _serviceConfigurations)
+            {
+                var host = serviceConfiguration.Host;
+
+                foreach (var queueInfo in ServiceMapHelper.ExtractQueues(serviceType))
+                {
+                    CreateQueue(
+                        serviceConfiguration,
+                        host,
+                        queueInfo.Name,
+                        queueInfo.Type);
+                }
+            }
+        }
+
+        private void CreateCallbackConsumers()
+        {
+            if (_callbackHost == null)
+            {
+                return;
+            }
+
+            var commandResultTypes = _serviceClientConfigurator
+                .GetServices()
+                .SelectMany(ServiceMapHelper.ExtractServiceCommandsResults);
+
+            ReceiveEndpoint(_callbackHost, _callbackQueueName, endpointCfg =>
+            {
+                foreach (var resultType in commandResultTypes)
+                {
+                    var callbackConsumerType = CommandConsumerTypeFactory.CreateCallbackConsumer(resultType);
+                    
+                    endpointCfg.Consumer(
+                        callbackConsumerType, 
+                        _ => _consumerFactory.CreateConsumer(callbackConsumerType));
+                }
+            }); 
         }
 
         private void CreateQueue(

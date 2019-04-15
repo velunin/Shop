@@ -19,5 +19,11 @@ namespace MassInstance
 
             return typeof(CommandRequestConsumer<,>).MakeGenericType(commandType, resultType ?? typeof(EmptyResult));
         }
+
+        public static Type CreateCallbackConsumer(Type commandResultType)
+        {
+            return typeof(CallbackCommandConsumer<,>).MakeGenericType(
+                typeof(CommandResponse<>).MakeGenericType(commandResultType), commandResultType);
+        }
     }
 }
