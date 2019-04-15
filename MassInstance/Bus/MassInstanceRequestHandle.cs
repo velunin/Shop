@@ -18,7 +18,7 @@ namespace MassInstance.Bus
                     $"Command response must be {typeof(CommandResponse<TResult>)} type");
             }
 
-            _completionSource.SetResult(commandResponse);
+            _completionSource.TrySetResult(commandResponse);
         }
 
         public Task<CommandResponse<TResult>> GetResponse(CancellationToken cancellationToken)
@@ -32,12 +32,5 @@ namespace MassInstance.Bus
         {
             _completionSource.SetCanceled();
         }
-    }
-
-    internal interface IRequestHandleResponseSetter
-    {
-        void SetResponse(object response);
-
-        void SetCancelled();
     }
 }

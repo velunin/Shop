@@ -71,7 +71,9 @@ namespace Shop.Web
         {
             var rabbitMqConfig = Configuration.GetSection("RabbitMqConfig").Get<RabbitMqConfig>();
 
-            services.AddMassInstance();
+            services.AddMassInstance(ext => ext
+                .ResultTypesFrom<CartServiceMap>()
+                .ResultTypesFrom<OrderServiceMap>());
 
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),

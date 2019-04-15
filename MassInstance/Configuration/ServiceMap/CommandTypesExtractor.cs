@@ -1,41 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MassInstance.Configuration.ServiceMap
 {
     public class CommandTypesExtractor : ICommandTypesExtractor
     {
-        private readonly List<Type> _consumerServices = new List<Type>();
-        private readonly List<Type> _publishServices = new List<Type>();
+        private readonly HashSet<Type> _commandTypes = new HashSet<Type>();
+        private readonly HashSet<Type> _commandResultTypes = new HashSet<Type>();
 
         public ICommandTypesExtractor ConsumersFrom<TService>() where TService : IServiceMap
         {
-            _consumerServices.Add(typeof(TService));
+            foreach (var commandInfo in ServiceMapHelper.ExtractServiceCommands(typeof(TService)))
+            {
+                if (!_commandTypes.Contains(commandInfo.Type))
+                {
+                    _commandTypes.Add(commandInfo.Type);
+                }
+            }
 
             return this;
         }
 
         public ICommandTypesExtractor ResultTypesFrom<TService>() where TService : IServiceMap
         {
-            _publishServices.Add(typeof(TService));
+
+            foreach (var commandResultType in ServiceMapHelper.ExtractServiceCommandsResults(typeof(TService)))
+            {
+                if (!_commandResultTypes.Contains(commandResultType))
+                {
+                    _commandResultTypes.Add(commandResultType);
+                }
+            }
+
             return this;
         }
 
         public IEnumerable<Type> ExtractCommands()
         {
-            return _consumerServices
-                .Select(ServiceMapHelper.ExtractServiceCommands)
-                .SelectMany(x => x.Select(t => t.Type))
-                .Distinct();
+            return _commandTypes;
         }
 
         public IEnumerable<Type> ExtractResultTypes()
         {
-            return _consumerServices
-                .Select(ServiceMapHelper.ExtractServiceCommandsResults)
-                .SelectMany(x => x)
-                .Distinct();
+            return _commandResultTypes;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Extensions.DependencyInjection;
 using Automatonymous.Scoping;
 using MassTransit;
 using MassTransit.AutomatonymousExtensionsDependencyInjectionIntegration;

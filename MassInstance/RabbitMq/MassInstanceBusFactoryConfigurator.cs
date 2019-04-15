@@ -18,7 +18,7 @@ namespace MassInstance.RabbitMq
     {
         private readonly IMassInstanceConsumerFactory _consumerFactory;
         private readonly ISagaMessageExtractor _sagaMessageExtractor;
-        private readonly IServiceClientConfigurator _serviceConfigurator = new ServiceClientConfigurator();
+        private readonly IServiceClientConfigurator _serviceClientConfigurator = new ServiceClientConfigurator();
 
         private readonly IDictionary<Type, IRabbitMqServiceConfiguration> _serviceConfigurations =
             new Dictionary<Type, IRabbitMqServiceConfiguration>();
@@ -47,7 +47,7 @@ namespace MassInstance.RabbitMq
 
             var serviceBus = new ServiceBus(
                 base.CreateBus(),
-                _serviceConfigurator.BuildQueueMapper(),
+                _serviceClientConfigurator.BuildQueueMapper(),
                 new SerivceClientConfig
                 {
                     BrokerUri = _callbackHost?.Address,
@@ -81,7 +81,7 @@ namespace MassInstance.RabbitMq
             _callbackQueueName = callbackQueue;
             _callbackHost = callbackHost;
 
-            configureServiceClient(_serviceConfigurator);
+            configureServiceClient(_serviceClientConfigurator);
         }
 
         public Assembly[] SagaStateMachineAssemblies
@@ -113,9 +113,9 @@ namespace MassInstance.RabbitMq
                 return;
             }
 
-            var commandResultTypes = _serviceConfigurator
+            var commandResultTypes = _serviceClientConfigurator
                 .GetServices()
-                .SelectMany(ServiceMapHelper.ExtractCommandResultTypes);
+                .SelectMany(ServiceMapHelper.ExtractServiceCommandsResults);
 
             ReceiveEndpoint(_callbackHost, _callbackQueueName, endpointCfg =>
             {
