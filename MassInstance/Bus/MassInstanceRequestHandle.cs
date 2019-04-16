@@ -5,7 +5,7 @@ using MassInstance.MessageContracts;
 
 namespace MassInstance.Bus
 {
-    internal class MassInstanceRequestHandle<TResult> : IRequestHandleResponseSetter
+    internal class MassInstanceRequestHandle<TResult> : IRequestHandleControl
     {
         private readonly TaskCompletionSource<CommandResponse<TResult>> _completionSource =
             new TaskCompletionSource<CommandResponse<TResult>>();

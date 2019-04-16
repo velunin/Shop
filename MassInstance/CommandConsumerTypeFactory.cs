@@ -8,7 +8,7 @@ namespace MassInstance
 {
     public class CommandConsumerTypeFactory
     {
-        public static Type Create(Type commandType)
+        public static Type CreateCommandConsumer(Type commandType)
         {
             var resultType = commandType
                 .GetInterfaces()
@@ -18,6 +18,11 @@ namespace MassInstance
                 .SingleOrDefault();
 
             return typeof(CommandRequestConsumer<,>).MakeGenericType(commandType, resultType ?? typeof(EmptyResult));
+        }
+
+        public static Type CreateEventConsumer(Type eventType)
+        {
+            return typeof(EventConsumer<>).MakeGenericType(eventType);
         }
 
         public static Type CreateCallbackConsumer(Type commandResultType)

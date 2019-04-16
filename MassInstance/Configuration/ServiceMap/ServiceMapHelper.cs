@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using MassInstance.Cqrs.Commands;
+using MassInstance.Cqrs.Events;
 using MassInstance.MessageContracts;
 
 namespace MassInstance.Configuration.ServiceMap
@@ -49,6 +50,21 @@ namespace MassInstance.Configuration.ServiceMap
                     .GetInterfaces()
                     .Any(i => i == typeof(ICommand)))
                 .Select(f => new CommandInfo
+                {
+                    Name = f.Name,
+                    Type = f.FieldType
+                });
+        }
+
+        public static IEnumerable<EventInfo> ExtractEvents(Type queueMapType)
+        {
+            return queueMapType
+                .GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(f => f
+                    .FieldType
+                    .GetInterfaces()
+                    .Any(i => i == typeof(IEvent)))
+                .Select(f => new EventInfo
                 {
                     Name = f.Name,
                     Type = f.FieldType

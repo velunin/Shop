@@ -162,7 +162,11 @@ namespace MassInstance.RabbitMq
                 //Retrieve commands from service map with excluding saga event types
                 var commands = ServiceMapHelper
                     .ExtractCommands(queueType)
-                    .Where(command => !sagaMessageTypes.Contains(command.Type)); 
+                    .Where(command => !sagaMessageTypes.Contains(command.Type));
+
+                var events = ServiceMapHelper
+                    .ExtractCommands(queueType)
+                    .Where(command => !sagaMessageTypes.Contains(command.Type));
 
                 foreach (var commandInfo in commands)
                 {
@@ -191,7 +195,7 @@ namespace MassInstance.RabbitMq
                 configureExceptionHandling += commandConfiguration.ConfigureExceptionHandling;
             }
 
-            var consumerType = CommandConsumerTypeFactory.Create(commandType);
+            var consumerType = CommandConsumerTypeFactory.CreateCommandConsumer(commandType);
             if (!_consumerFactory.TryCreateConsumer(consumerType, out var commandConsumer))
             {
                 return;

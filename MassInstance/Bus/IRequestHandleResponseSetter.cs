@@ -1,6 +1,6 @@
 ﻿namespace MassInstance.Bus
 {
-    internal interface IRequestHandleResponseSetter
+    internal interface IRequestHandleControl
     {
         void SetResponse(object response);
 
