@@ -29,6 +29,9 @@ namespace MassInstance.RabbitMq
 
         private string _callbackQueueName;
 
+        private bool _isConfiguredAsHost;
+        private bool _isConfiguredAsClient;
+
         public MassInstanceBusFactoryConfigurator(
             IRabbitMqBusConfiguration configuration, 
             IRabbitMqEndpointConfiguration busEndpointConfiguration, 
@@ -68,6 +71,8 @@ namespace MassInstance.RabbitMq
 
             _serviceConfigurations.Add(serviceType, serviceConfiguration);
 
+            _isConfiguredAsHost = true;
+
             return this;
         }
 
@@ -82,6 +87,8 @@ namespace MassInstance.RabbitMq
             _callbackHost = callbackHost;
 
             configureServiceClient(_serviceClientConfigurator);
+
+            _isConfiguredAsClient = true;
         }
 
         public Assembly[] SagaStateMachineAssemblies
@@ -91,6 +98,8 @@ namespace MassInstance.RabbitMq
 
         private void CreateServiceConsumers()
         {
+            if(!_isConfiguredAsHost) return;
+            
             foreach (var (serviceType, serviceConfiguration) in _serviceConfigurations)
             {
                 var host = serviceConfiguration.Host;
@@ -108,10 +117,7 @@ namespace MassInstance.RabbitMq
 
         private void CreateCallbackConsumers()
         {
-            if (_callbackHost == null)
-            {
-                return;
-            }
+            if (!_isConfiguredAsClient) return;
 
             var commandResultTypes = _serviceClientConfigurator
                 .GetServices()
@@ -156,7 +162,11 @@ namespace MassInstance.RabbitMq
                 //Retrieve commands from service map with excluding saga event types
                 var commands = ServiceMapHelper
                     .ExtractCommands(queueType)
-                    .Where(command => !sagaMessageTypes.Contains(command.Type)); 
+                    .Where(command => !sagaMessageTypes.Contains(command.Type));
+
+                var events = ServiceMapHelper
+                    .ExtractCommands(queueType)
+                    .Where(command => !sagaMessageTypes.Contains(command.Type));
 
                 foreach (var commandInfo in commands)
                 {
@@ -185,7 +195,7 @@ namespace MassInstance.RabbitMq
                 configureExceptionHandling += commandConfiguration.ConfigureExceptionHandling;
             }
 
-            var consumerType = CommandConsumerTypeFactory.Create(commandType);
+            var consumerType = CommandConsumerTypeFactory.CreateCommandConsumer(commandType);
             if (!_consumerFactory.TryCreateConsumer(consumerType, out var commandConsumer))
             {
                 return;

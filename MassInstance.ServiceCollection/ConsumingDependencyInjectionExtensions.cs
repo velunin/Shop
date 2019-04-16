@@ -19,7 +19,12 @@ namespace MassInstance.ServiceCollection
 
             foreach (var commandType in commandTypesExtractor.ExtractCommands())
             {
-                serviceCollection.AddScoped(CommandConsumerTypeFactory.Create(commandType));
+                serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCommandConsumer(commandType));
+            }
+
+            foreach (var resultType in commandTypesExtractor.ExtractResultTypes())
+            {
+                serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCallbackConsumer(resultType));
             }
 
             foreach (var resultType in commandTypesExtractor.ExtractResultTypes())

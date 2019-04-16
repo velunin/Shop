@@ -12,8 +12,8 @@ namespace MassInstance.Bus
 {
     public partial class ServiceBus
     {
-        private readonly ConcurrentDictionary<Guid, IRequestHandleResponseSetter> _handleResponseSetters =
-            new ConcurrentDictionary<Guid, IRequestHandleResponseSetter>();
+        private readonly ConcurrentDictionary<Guid, IRequestHandleControl> _requestHandles =
+            new ConcurrentDictionary<Guid, IRequestHandleControl>();
 
         private readonly IQueuesMapper _mapper;
         private readonly SerivceClientConfig _serivceClientConfig;
@@ -68,7 +68,7 @@ namespace MassInstance.Bus
 
             var requestHandle = new MassInstanceRequestHandle<TResult>();
 
-            _handleResponseSetters.AddOrUpdate(requestId, requestHandle, (_, setter) => setter);
+            _requestHandles.AddOrUpdate(requestId, requestHandle, (_, setter) => setter);
 
             var delayedTask = Task.Delay(timeout, cancellationToken);
             var responseTask = requestHandle.GetResponse(cancellationToken);
@@ -76,12 +76,7 @@ namespace MassInstance.Bus
             var deleteHandleTask =
                 responseTask.ContinueWith(task =>
                     {
-                        _log.Debug($"Try remove request handle {requestId}");
-
-                        if (_handleResponseSetters.TryRemove(requestId, out _))
-                        {
-                            _log.Debug($"Request {requestId} was removed");
-                        }
+                        TryRemoveHandle<TResult>(requestId);
                     },
                     cancellationToken);
 
@@ -120,9 +115,19 @@ namespace MassInstance.Bus
 
         public void ResponseCallback(Guid requestId, object response)
         {
-            if (_handleResponseSetters.TryGetValue(requestId, out var setter))
+            if (_requestHandles.TryGetValue(requestId, out var requestHandle))
             {
-                setter.SetResponse(response);
+                requestHandle.SetResponse(response);
+            }
+        }
+
+        private void TryRemoveHandle<TResult>(Guid requestId)
+        {
+            _log.Debug($"Try remove request handle {requestId}");
+
+            if (_requestHandles.TryRemove(requestId, out _))
+            {
+                _log.Debug($"Request {requestId} was removed");
             }
         }
 
