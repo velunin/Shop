@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using MassInstance.Bus;
 using MassInstance.Client;
 using MassInstance.Configuration;
 using MassInstance.Configuration.Client;
 using MassInstance.Configuration.ServiceMap;
+using MassInstance.Messaging;
+
 using MassTransit;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
@@ -165,7 +168,7 @@ namespace MassInstance.RabbitMq
                     .Where(command => !sagaMessageTypes.Contains(command.Type));
 
                 var events = ServiceMapHelper
-                    .ExtractCommands(queueType)
+                    .ExtractEvents(queueType)
                     .Where(command => !sagaMessageTypes.Contains(command.Type));
 
                 foreach (var commandInfo in commands)
@@ -175,6 +178,17 @@ namespace MassInstance.RabbitMq
                         serviceConfiguration,
                         endpointConfiguration,
                         commandInfo.Type);
+                }
+
+                foreach (var eventInfo in events)
+                {
+                    var eventConsumerType = CommandConsumerTypeFactory.CreateEventConsumer(eventInfo.Type);
+                    if (!_consumerFactory.TryCreateConsumer(eventConsumerType, out var eventConsumer))
+                    {
+                        continue;
+                    }
+
+                    endpointConfiguration.Consumer(eventConsumerType, _ => eventConsumer);
                 }
             });
         }
@@ -188,7 +202,8 @@ namespace MassInstance.RabbitMq
             var commandExceptionHandlingOptions = new CommandExceptionHandlingOptions();
 
             var configureExceptionHandling = 
-                serviceConfiguration.ConfigureCommandExceptionHandling + queueConfiguration.ConfigureCommandExceptionHandling;
+                serviceConfiguration.ConfigureCommandExceptionHandling + 
+                queueConfiguration.ConfigureCommandExceptionHandling;
 
             if (queueConfiguration.TryGetCommandConfig(commandType, out var commandConfiguration))
             {
