@@ -31,6 +31,11 @@ namespace MassInstance.ServiceCollection
             {
                 serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCallbackConsumer(resultType));
             }
+
+            foreach (var resultType in commandTypesExtractor.ExtractResultTypes())
+            {
+                serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCallbackConsumer(resultType));
+            }
         }
     }
 }
