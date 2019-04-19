@@ -12,7 +12,7 @@ namespace Shop.Domain.Commands.Cart
         {
             if (count < 1)
             {
-                throw new ArgumentException("Value must greater than 0", nameof(count));   
+                throw new ArgumentException("Value must greater than 0", nameof(count));
             }
 
             CorrelationId = correlationId;
