@@ -1,7 +1,6 @@
 ﻿using System;
-using Shop.Domain.Commands;
 
-namespace Shop.Domain.Events
+namespace Shop.Domain.Order.Events
 {
     public class OrderContactsAdded: ICorrelatedEvent
     {

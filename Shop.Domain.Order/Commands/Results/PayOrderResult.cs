@@ -1,4 +1,4 @@
-﻿namespace Shop.Domain.Commands.Order.Results
+﻿namespace Shop.Domain.Order.Commands.Results
 {
     public class PayOrderResult
     {

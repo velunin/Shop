@@ -1,6 +1,7 @@
 ﻿using System;
+using Shop.Domain.Order.Commands.Dto;
 
-namespace Shop.Domain.Commands.Order
+namespace Shop.Domain.Order.Commands
 {
     public class CreateOrderCommand : ICorrelatedCommand
     {

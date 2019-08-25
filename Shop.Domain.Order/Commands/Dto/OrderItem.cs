@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shop.Domain.Commands.Order
+namespace Shop.Domain.Order.Commands.Dto
 {
     public class OrderItem
     {

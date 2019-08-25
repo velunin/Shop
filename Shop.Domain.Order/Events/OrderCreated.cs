@@ -1,11 +1,10 @@
 ﻿using System;
-using Shop.Domain.Commands;
 
-namespace Shop.Domain.Events
+namespace Shop.Domain.Order.Events
 {
-    public class OrderCreatingUnknownError : ICorrelatedEvent
+    public class OrderCreated : ICorrelatedEvent
     {
-        public OrderCreatingUnknownError(Guid orderId)
+        public OrderCreated(Guid orderId)
         {
             CorrelationId = orderId;
             OrderId = orderId;

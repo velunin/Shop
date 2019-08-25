@@ -1,6 +1,7 @@
 ﻿using System;
+using Shop.Domain.Commands;
 
-namespace Shop.Domain.Commands.Cart
+namespace Shop.Domain.Cart.Commands
 {
     public class DeleteProductFromCart : ICorrelatedCommand
     {

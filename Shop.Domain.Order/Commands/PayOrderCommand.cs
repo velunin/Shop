@@ -1,8 +1,7 @@
 ﻿using System;
-using MassInstance.Cqrs.Commands;
-using Shop.Domain.Commands.Order.Results;
+using Shop.Domain.Order.Commands.Results;
 
-namespace Shop.Domain.Commands.Order
+namespace Shop.Domain.Order.Commands
 {
     public class PayOrderCommand : IResultingCommand<PayOrderResult>, ICorrelatedCommand
     {
