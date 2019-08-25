@@ -56,7 +56,7 @@ namespace Shop.Web.Controllers
                 }
                 catch (ServiceException ex)
                 {
-                    throw new Exception($"{ex.ErrorCode} - {ex.Message}");
+                    throw new InvalidOperationException($"{ex.ErrorCode} - {ex.Message}");
                 }
 
                 return RedirectToAction("Contacts", new

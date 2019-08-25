@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using MassInstance.Bus;
 using MassInstance.Client;
 using MassInstance.Configuration;
@@ -11,6 +12,7 @@ using MassTransit;
 using MassTransit.RabbitMqTransport;
 using MassTransit.RabbitMqTransport.Configuration;
 using MassTransit.RabbitMqTransport.Configurators;
+using EventInfo = MassInstance.Configuration.ServiceMap.EventInfo;
 
 namespace MassInstance.RabbitMq
 {
@@ -159,14 +161,14 @@ namespace MassInstance.RabbitMq
                     }
                 }
 
-                //Retrieve commands from service map with excluding saga event types
+                //Retrieve commands and events from service map with excluding saga event types
                 var commands = ServiceMapHelper
                     .ExtractCommands(queueType)
                     .Where(command => !sagaMessageTypes.Contains(command.Type));
 
                 var events = ServiceMapHelper
-                    .ExtractCommands(queueType)
-                    .Where(command => !sagaMessageTypes.Contains(command.Type));
+                    .ExtractEvents(queueType)
+                    .Where(@event => !sagaMessageTypes.Contains(@event.Type));
 
                 foreach (var commandInfo in commands)
                 {
@@ -176,19 +178,38 @@ namespace MassInstance.RabbitMq
                         endpointConfiguration,
                         commandInfo.Type);
                 }
+
+                foreach (var eventInfo in events)
+                {
+                    CreateEventConsumer(
+                        eventInfo, 
+                        endpointConfiguration);
+                }
             });
+        }
+
+        private void CreateEventConsumer(EventInfo eventInfo, IReceiveEndpointConfigurator endpointConfiguration)
+        {
+            var eventConsumerType = CommandConsumerTypeFactory.CreateEventConsumer(eventInfo.Type);
+            if (!_consumerFactory.TryCreateConsumer(eventConsumerType, out var eventConsumer))
+            {
+                return;
+            }
+
+            endpointConfiguration.Consumer(eventConsumerType, _ => eventConsumer);
         }
 
         private void CreateCommandConsumer(
             IQueueConfiguration queueConfiguration,
             IServiceConfiguration serviceConfiguration,
-            IRabbitMqReceiveEndpointConfigurator endpointConfigurator,
+            IReceiveEndpointConfigurator endpointConfigurator,
             Type commandType)
         {
             var commandExceptionHandlingOptions = new CommandExceptionHandlingOptions();
 
             var configureExceptionHandling = 
-                serviceConfiguration.ConfigureCommandExceptionHandling + queueConfiguration.ConfigureCommandExceptionHandling;
+                serviceConfiguration.ConfigureCommandExceptionHandling + 
+                queueConfiguration.ConfigureCommandExceptionHandling;
 
             if (queueConfiguration.TryGetCommandConfig(commandType, out var commandConfiguration))
             {

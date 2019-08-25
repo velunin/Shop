@@ -76,7 +76,7 @@ namespace MassInstance.Bus
             var deleteHandleTask =
                 responseTask.ContinueWith(task =>
                     {
-                        TryRemoveHandle<TResult>(requestId);
+                        TryRemoveHandle(requestId);
                     },
                     cancellationToken);
 
@@ -121,7 +121,7 @@ namespace MassInstance.Bus
             }
         }
 
-        private void TryRemoveHandle<TResult>(Guid requestId)
+        private void TryRemoveHandle(Guid requestId)
         {
             _log.Debug($"Try remove request handle {requestId}");
 

@@ -12,5 +12,7 @@ namespace MassInstance.Configuration.ServiceMap
         IEnumerable<Type> ExtractCommands();
 
         IEnumerable<Type> ExtractResultTypes();
+
+        IEnumerable<Type> ExtractEventTypes();
     }
 }

@@ -4,7 +4,7 @@ using Shop.Domain.Commands.Order.Results;
 
 namespace Shop.Domain.Commands.Order
 {
-    public class PayOrderCommand : IResultingCommand<PayOrderResult>
+    public class PayOrderCommand : IResultingCommand<PayOrderResult>, ICorrelatedCommand
     {
         public PayOrderCommand(Guid orderId)
         {

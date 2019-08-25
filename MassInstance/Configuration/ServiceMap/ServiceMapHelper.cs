@@ -86,6 +86,11 @@ namespace MassInstance.Configuration.ServiceMap
             return ExtractQueues(serviceMapType).SelectMany(q => ExtractCommands(q.Type));
         }
 
+        public static IEnumerable<EventInfo> ExtractServiceEvents(Type serviceMapType)
+        {
+            return ExtractQueues(serviceMapType).SelectMany(q => ExtractEvents(q.Type));
+        }
+
         public static IEnumerable<Type> ExtractServiceCommandsResults(Type serviceMapType)
         {
             return ExtractQueues(serviceMapType).SelectMany(q => ExtractCommandResultTypes(q.Type));

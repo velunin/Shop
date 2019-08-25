@@ -22,6 +22,11 @@ namespace MassInstance.ServiceCollection
                 serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCommandConsumer(commandType));
             }
 
+            foreach (var eventType in commandTypesExtractor.ExtractEventTypes())
+            {
+                serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateEventConsumer(eventType));
+            }
+
             foreach (var resultType in commandTypesExtractor.ExtractResultTypes())
             {
                 serviceCollection.AddScoped(CommandConsumerTypeFactory.CreateCallbackConsumer(resultType));
