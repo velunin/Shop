@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using GreenPipes;
-
+using MassInstance.Cqrs.Events;
 using MassTransit;
 using MassTransit.Logging;
 using MassTransit.Topology;
