@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Shop.Order.DataAccess</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit.Automatonymous" Version="5.1.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MassInstance.Cqrs\MassInstance.Cqrs.csproj" />
+    <ProjectReference Include="..\Shop.Order.DataProjections\Shop.Order.DataProjections.csproj" />
+    <ProjectReference Include="..\Shop.Order.Domain\Shop.Order.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

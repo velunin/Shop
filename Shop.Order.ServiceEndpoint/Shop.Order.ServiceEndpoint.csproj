@@ -1,11 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <AssemblyName>Shop.Order.ServiceEndpoint</AssemblyName>
+    <RootNamespace>Shop.Order.ServiceEndpoint</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    <Compile Remove="wwwroot\**" />
+    <Content Remove="wwwroot\**" />
+    <EmbeddedResource Remove="wwwroot\**" />
+    <None Remove="wwwroot\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="7.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="MassTransit" Version="5.1.4" />
     <PackageReference Include="MassTransit.Automatonymous" Version="5.1.4" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" Version="5.1.4" />
@@ -13,8 +24,7 @@
     <PackageReference Include="MassTransit.Marten" Version="5.1.4" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="5.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
     <PackageReference Include="Scrutor" Version="3.0.1" />
   </ItemGroup>
 
@@ -23,10 +33,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MassInstance.Cqrs\MassInstance.Cqrs.csproj" />
     <ProjectReference Include="..\MassInstance.ServiceCollection\MassInstance.ServiceCollection.csproj" />
+    <ProjectReference Include="..\Shop.Order.DataProjections\Shop.Order.DataProjections.csproj" />
+    <ProjectReference Include="..\Shop.Order.DataAccess\Shop.Order.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
     <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
+    <ProjectReference Include="..\Shop.Services.Shared\Shop.Services.Shared.csproj" />
   </ItemGroup>
 
 </Project>
