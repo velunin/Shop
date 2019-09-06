@@ -1,4 +1,4 @@
-﻿namespace Shop.Services.Shared.ErrorCodes
+﻿namespace Shop.Shared.Services.ErrorCodes
 {
     public enum CartErrorCodes
     {

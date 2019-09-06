@@ -2,7 +2,7 @@
 using Shop.Cart.Domain.Commands;
 using Shop.Order.Domain.Commands;
 
-namespace Shop.Services.Shared
+namespace Shop.Shared.Services
 {
     public class CartServiceMap : IServiceMap
     {

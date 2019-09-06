@@ -1,9 +1,9 @@
 ﻿using System;
-using Shop.Domain.Commands;
+using MassInstance.Cqrs.Commands;
 
 namespace Shop.Cart.Domain.Commands
 {
-    public class AddOrUpdateProductInCart : ICorrelatedCommand
+    public class AddOrUpdateProductInCart : ICommand
     {
         public AddOrUpdateProductInCart(
             Guid correlationId, 

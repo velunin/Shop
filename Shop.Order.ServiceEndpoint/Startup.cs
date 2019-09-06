@@ -14,10 +14,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Shop.DataAccess.Dto;
 using Shop.Order.DataAccess;
 using Shop.Order.DataAccess.Dto;
-using Shop.Services.Shared;
+using Shop.Shared.Services;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Order.ServiceEndpoint

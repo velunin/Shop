@@ -2,9 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Shop.Shared.Services</AssemblyName>
+    <RootNamespace>Shop.Shared.Services</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
     <ProjectReference Include="..\Shop.Cart.Domain\Shop.Cart.Domain.csproj" />
     <ProjectReference Include="..\Shop.Order.Domain\Shop.Order.Domain.csproj" />
   </ItemGroup>

@@ -13,8 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Shop.Cart.DataAccess;
-using Shop.Services.Shared;
-using Shop.Services.Shared.ErrorCodes;
+using Shop.Shared.Services;
+using Shop.Shared.Services.ErrorCodes;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Cart.ServiceEndpoint
@@ -32,7 +32,7 @@ namespace Shop.Cart.ServiceEndpoint
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.Configure<DataAccess.Dto.RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
+            services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
             services
                 .AddEntityFrameworkSqlServer()
@@ -64,7 +64,7 @@ namespace Shop.Cart.ServiceEndpoint
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),
                 busCfg =>
                 {
-                    var rabbitConfig = provider.GetService<IOptions<DataAccess.Dto.RabbitMqConfig>>().Value;
+                    var rabbitConfig = provider.GetService<IOptions<RabbitMqConfig>>().Value;
 
                     var host = busCfg.Host(new Uri(rabbitConfig.Uri), h =>
                     {

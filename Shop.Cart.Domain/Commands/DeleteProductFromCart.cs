@@ -1,9 +1,9 @@
 ﻿using System;
-using Shop.Domain.Commands;
+using MassInstance.Cqrs.Commands;s
 
 namespace Shop.Cart.Domain.Commands
 {
-    public class DeleteProductFromCart : ICorrelatedCommand
+    public class DeleteProductFromCart : ICommand
     {
         public DeleteProductFromCart(
             Guid correlationId,

@@ -1,9 +1,9 @@
 ﻿using System;
-using Shop.Domain.Commands;
+using MassInstance.Cqrs.Events;
 
 namespace Shop.Order.Domain.Events
 {
-    public class OrderHasBeenPayed : ICorrelatedEvent
+    public class OrderHasBeenPayed : IEvent
     {
         public OrderHasBeenPayed(Guid orderId)
         {   

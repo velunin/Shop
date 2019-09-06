@@ -1,10 +1,10 @@
 ﻿using System;
-using Shop.Domain.Commands;
+using MassInstance.Cqrs.Commands;
 using Shop.Order.Domain.Commands.Dto;
 
 namespace Shop.Order.Domain.Commands
 {
-    public class CreateOrderCommand : ICorrelatedCommand
+    public class CreateOrderCommand : ICommand
     {
         public CreateOrderCommand(Guid orderId, OrderItem[] orderItems)
         {

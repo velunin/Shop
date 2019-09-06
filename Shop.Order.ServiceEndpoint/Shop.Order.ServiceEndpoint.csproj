@@ -37,10 +37,8 @@
     <ProjectReference Include="..\MassInstance.ServiceCollection\MassInstance.ServiceCollection.csproj" />
     <ProjectReference Include="..\Shop.Order.DataProjections\Shop.Order.DataProjections.csproj" />
     <ProjectReference Include="..\Shop.Order.DataAccess\Shop.Order.DataAccess.csproj" />
-    <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
-    <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
     <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
-    <ProjectReference Include="..\Shop.Services.Shared\Shop.Services.Shared.csproj" />
+    <ProjectReference Include="..\Shop.Shared.Services\Shop.Shared.Services.csproj" />
   </ItemGroup>
 
 </Project>

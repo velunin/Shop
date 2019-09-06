@@ -1,11 +1,10 @@
 ﻿using System;
 using MassInstance.Cqrs.Commands;
-using Shop.Domain.Commands;
 using Shop.Order.Domain.Commands.Results;
 
 namespace Shop.Order.Domain.Commands
 {
-    public class PayOrderCommand : IResultingCommand<PayOrderResult>, ICorrelatedCommand
+    public class PayOrderCommand : IResultingCommand<PayOrderResult>
     {
         public PayOrderCommand(Guid orderId)
         {

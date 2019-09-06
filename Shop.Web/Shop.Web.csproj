@@ -24,8 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MassInstance.ServiceCollection\MassInstance.ServiceCollection.csproj" />
-    <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
-    <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
     <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
   </ItemGroup>
 

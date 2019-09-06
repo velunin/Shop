@@ -1,9 +1,10 @@
 ﻿using System;
+using MassInstance.Cqrs.Commands;
 using Shop.Domain.Commands;
 
 namespace Shop.Order.Domain.Commands
 {
-    public class AddOrderContactsCommand : ICorrelatedCommand
+    public class AddOrderContactsCommand : ICommand
     {
         public AddOrderContactsCommand(Guid orderId, string name, string email, string phone)
         {
