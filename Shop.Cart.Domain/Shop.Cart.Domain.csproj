@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Shop.Cart.Domain</AssemblyName>
+    <RootNamespace>Shop.Cart.Domain</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shop.Order.Domain\Shop.Order.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

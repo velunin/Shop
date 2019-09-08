@@ -13,18 +13,16 @@ namespace MassInstance.Configuration
 
         private readonly HashSet<Type> _sagaInstanceTypes = new HashSet<Type>();
 
-        public void Configure<TCommand>(
-            Expression<Func<TQueue, TCommand>> commandSelector, 
-            Action<ICommandConfiguration> configureCommand = null)
+        public ICommandConfiguration SelectCommand<TCommand>(
+            Expression<Func<TQueue, TCommand>> commandSelector)
         {
-            Configure(commandSelector.ReturnType, configureCommand);
+            return CreateAndGetConfiguration(commandSelector.ReturnType);
         }
 
-        public void Configure<TQueueMap, TCommand>(
-            Expression<Func<TQueueMap, TCommand>> commandSelector, 
-            Action<ICommandConfiguration> configureCommand = null) where TQueueMap : IQueueMap
+        public ICommandConfiguration SelectCommand<TQueueMap, TCommand>(
+            Expression<Func<TQueueMap, TCommand>> commandSelector) where TQueueMap : IQueueMap
         {
-            Configure(commandSelector.ReturnType, configureCommand);
+            return CreateAndGetConfiguration(commandSelector.ReturnType);
         }
 
         public void ConfigureSaga<TSagaInstance>() where TSagaInstance : SagaStateMachineInstance
@@ -51,17 +49,18 @@ namespace MassInstance.Configuration
 
         public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
 
-        private void Configure(Type commandType, Action<ICommandConfiguration> configureCommand = null)
+        private ICommandConfiguration CreateAndGetConfiguration(Type commandType)
         {
             if (_commandConfigurations.ContainsKey(commandType))
             {
-                throw new InvalidOperationException($"Command {commandType} already configured");
+                return _commandConfigurations[commandType];
             }
 
             var commandConfiguration = new CommandConfiguration();
-            configureCommand?.Invoke(commandConfiguration);
 
             _commandConfigurations.Add(commandType, commandConfiguration);
+
+            return commandConfiguration;
         }
     }
 }

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>Shop.Catalog.DataAccess</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="7.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MassInstance.Cqrs\MassInstance.Cqrs.csproj" />
+    <ProjectReference Include="..\Shop.Catalog.DataProjections\Shop.Catalog.DataProjections.csproj" />
+  </ItemGroup>
+
+</Project>
