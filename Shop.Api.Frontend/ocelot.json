@@ -1,0 +1,55 @@
+{
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/api/cart/{sessionId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "host": "localhost",
+          "port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/api/cart/{sessionId}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/cart/{path}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "host": "localhost",
+          "port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/api/cart/{path}",
+      "UpstreamHttpMethod": [ "POST", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/catalog",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "host": "localhost",
+          "port": 7001
+        }
+      ],
+      "UpstreamPathTemplate": "/api/catalog",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/order/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "host": "localhost",
+          "port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/api/order/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "DELETE" ]
+    }
+  ],
+  "GlobalConfiguration": {
+
+  }
+}
