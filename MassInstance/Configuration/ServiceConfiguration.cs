@@ -12,25 +12,23 @@ namespace MassInstance.Configuration
 
         public Action<CommandExceptionHandlingOptions> ConfigureCommandExceptionHandling { get; set; }
 
-        public void Configure<TServiceMap, TQueue>(
-            Expression<Func<TServiceMap, TQueue>> queueSelector,
-            Action<IQueueConfiguration<TQueue>> configureQueue = null)
+        public IQueueConfiguration<TQueue> SelectQueue<TServiceMap, TQueue>(
+            Expression<Func<TServiceMap, TQueue>> queueSelector)
             where TServiceMap : IServiceMap
             where TQueue : IQueueMap
         {
             var queueField = ((MemberExpression)queueSelector.Body).Member;
 
-            Configure(ServiceMapHelper.ExtractQueueName(queueField), configureQueue);
+            return GetOrCreateConfiguration<TQueue>(ServiceMapHelper.ExtractQueueName(queueField));
         }
 
-        public void Configure<TQueue>(
-            Expression<Func<TService, TQueue>> queueSelector,
-            Action<IQueueConfiguration<TQueue>> configureQueue = null)
+        public IQueueConfiguration<TQueue> SelectQueue<TQueue>(
+            Expression<Func<TService, TQueue>> queueSelector)
             where TQueue : IQueueMap
         {
             var queueField = ((MemberExpression)queueSelector.Body).Member;
 
-            Configure(ServiceMapHelper.ExtractQueueName(queueField), configureQueue);
+            return GetOrCreateConfiguration<TQueue>(ServiceMapHelper.ExtractQueueName(queueField));
         }
 
         public bool TryGetQueueConfig(string queueName, out IQueueConfiguration queueConfiguration)
@@ -38,14 +36,20 @@ namespace MassInstance.Configuration
             return _queuesConfigurations.TryGetValue(queueName, out queueConfiguration);
         }
 
-        private void Configure<TQueue>(string queueName, Action<IQueueConfiguration<TQueue>> configureQueue = null) where TQueue : IQueueMap
+        private IQueueConfiguration<TQueue> GetOrCreateConfiguration<TQueue>(string queueName) where TQueue : IQueueMap
         {
             Validate(queueName);
 
+            if (_queuesConfigurations.ContainsKey(queueName))
+            {
+                return (IQueueConfiguration<TQueue>)_queuesConfigurations[queueName];
+            }
+
             var queueConfiguration = new QueueConfiguration<TQueue>();
-            configureQueue?.Invoke(queueConfiguration);
 
             _queuesConfigurations.Add(queueName, queueConfiguration);
+            
+            return queueConfiguration;
         }
 
         private void Validate(string queueName)

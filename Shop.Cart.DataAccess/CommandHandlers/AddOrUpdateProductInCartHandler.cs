@@ -19,7 +19,7 @@ namespace Shop.Cart.DataAccess.CommandHandlers
         public async Task HandleAsync(AddOrUpdateProductInCart command, CancellationToken cancellationToken)
         {
             var product = await _dbContext
-                .Product
+                .Products
                 .SingleOrDefaultAsync(p => p.ProductId == command.ProductId, 
                     cancellationToken);
 

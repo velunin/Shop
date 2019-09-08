@@ -6,7 +6,6 @@ namespace Shop.Cart.Domain.Commands
     public class AddOrUpdateProductInCart : ICommand
     {
         public AddOrUpdateProductInCart(
-            Guid correlationId, 
             Guid productId, 
             string sessionId,
             int count)
@@ -16,13 +15,10 @@ namespace Shop.Cart.Domain.Commands
                 throw new ArgumentException("Value must greater than 0", nameof(count));
             }
 
-            CorrelationId = correlationId;
             ProductId = productId;
             SessionId = sessionId;
             Count = count;
         }
-
-        public Guid CorrelationId { get; }
 
         public Guid ProductId { get; }
 

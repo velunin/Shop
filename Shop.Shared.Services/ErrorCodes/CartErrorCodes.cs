@@ -2,6 +2,6 @@
 {
     public enum CartErrorCodes
     {
-        UnknownError = 0,
+        UnknownError = 0
     }
 }

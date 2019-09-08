@@ -8,13 +8,12 @@ namespace MassInstance.Configuration
 {
     public interface IQueueConfiguration<TQueue> : IQueueConfiguration where TQueue : IQueueMap
     {
-        void Configure<TCommand>(Expression<Func<TQueue, TCommand>> commandSelector, Action<ICommandConfiguration> configureCommand = null);
+        ICommandConfiguration SelectCommand<TCommand>(Expression<Func<TQueue, TCommand>> commandSelector);
     }
 
     public interface IQueueConfiguration
     {
-        void Configure<TQueue,TCommand>(Expression<Func<TQueue, TCommand>> commandSelector,
-            Action<ICommandConfiguration> configureCommand = null) 
+        ICommandConfiguration SelectCommand<TQueue,TCommand>(Expression<Func<TQueue, TCommand>> commandSelector) 
             where TQueue : IQueueMap;
 
         void ConfigureSaga<TSagaInstance>() where TSagaInstance : SagaStateMachineInstance;

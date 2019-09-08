@@ -2,6 +2,7 @@
 using AutoMapper;
 using MassInstance;
 using MassInstance.Bus;
+using MassInstance.Configuration;
 using MassInstance.RabbitMq;
 using MassInstance.ServiceCollection;
 using MassTransit;
@@ -15,8 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Shop.Order.DataAccess;
+using Shop.Order.DataAccess.CommandHandlers;
 using Shop.Order.DataAccess.Dto;
 using Shop.Shared.Services;
+using Shop.Shared.Services.ErrorCodes;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Order.ServiceEndpoint
@@ -45,10 +48,8 @@ namespace Shop.Order.ServiceEndpoint
             services.AddCqrs();
 
             services.AddCommandAndQueryHandlers(
-                AppDomain.CurrentDomain.GetAssemblies(), 
+                typeof(CreateOrderHandler).Assembly, 
                 ServiceLifetime.Transient);
-
-            services.AddSingleton<IFakeMailService, FakeMailService>();
 
             RegisterServiceBus(services);
 
@@ -92,9 +93,17 @@ namespace Shop.Order.ServiceEndpoint
 
                     busCfg.AddServiceHost<OrderServiceMap>(host, srvCfg =>
                     {
-                        srvCfg.Configure(
-                            serviceMap => serviceMap.OrderServiceSaga, 
-                            queueCfg => queueCfg.ConfigureSaga<OrderSagaContext>());
+                        var commandQueueConfig = srvCfg.SelectQueue(s => s.OrderCommands);
+
+                        commandQueueConfig.ConfigureCommandExceptionHandling = options =>
+                            options.SetDefaultExceptionResponse(
+                                (int) OrderErrorCodes.UnknownError,
+                                "Unknown error");
+
+                        commandQueueConfig
+                            .SelectCommand(c => c.CreateOrderCommand)
+                            .SetExceptionHandling(h =>
+                                h.Map<InvalidOperationException>((int) OrderErrorCodes.AlreadySold, "Already sold"));
                     });
                 }));
 

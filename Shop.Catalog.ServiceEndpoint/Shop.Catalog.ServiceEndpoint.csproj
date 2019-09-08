@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyName>Shop.Cart.ServiceEndpoint</AssemblyName>
-    <RootNamespace>Shop.Cart.ServiceEndpoint</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,26 +14,27 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.9" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MassInstance.Cqrs\MassInstance.Cqrs.csproj" />
     <ProjectReference Include="..\MassInstance.ServiceCollection\MassInstance.ServiceCollection.csproj" />
-    <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
-    <ProjectReference Include="..\Shop.Cart.DataAccess\Shop.Cart.DataAccess.csproj" />
-    <ProjectReference Include="..\Shop.Cart.ServiceModels\Shop.Cart.ServiceModels.csproj" />
-    <ProjectReference Include="..\Shop.Shared.Services\Shop.Shared.Services.csproj" />
+    <ProjectReference Include="..\Shop.Catalog.DataAccess\Shop.Catalog.DataAccess.csproj" />
+    <ProjectReference Include="..\Shop.Catalog.ServiceModels\Shop.Catalog.ServiceModels.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Update="appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>

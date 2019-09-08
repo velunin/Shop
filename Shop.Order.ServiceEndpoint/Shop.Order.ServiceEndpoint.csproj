@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="MassTransit" Version="5.1.4" />
@@ -23,9 +27,11 @@
     <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="5.1.4" />
     <PackageReference Include="MassTransit.Marten" Version="5.1.4" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="5.1.4" />
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
     <PackageReference Include="Scrutor" Version="3.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.9" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +44,7 @@
     <ProjectReference Include="..\Shop.Order.DataProjections\Shop.Order.DataProjections.csproj" />
     <ProjectReference Include="..\Shop.Order.DataAccess\Shop.Order.DataAccess.csproj" />
     <ProjectReference Include="..\MassInstance\MassInstance.csproj" />
+    <ProjectReference Include="..\Shop.Order.ServiceModels\Shop.Order.ServiceModels.csproj" />
     <ProjectReference Include="..\Shop.Shared.Services\Shop.Shared.Services.csproj" />
   </ItemGroup>
 

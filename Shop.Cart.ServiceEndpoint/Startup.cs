@@ -14,7 +14,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Shop.Cart.DataAccess;
 using Shop.Shared.Services;
-using Shop.Shared.Services.ErrorCodes;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Shop.Cart.ServiceEndpoint
@@ -58,8 +57,6 @@ namespace Shop.Cart.ServiceEndpoint
 
         private void RegisterServiceBus(IServiceCollection services)
         {
-            services.AddMassInstance(ext => ext.ConsumersFrom<CartServiceMap>());
-
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),
                 busCfg =>
@@ -71,40 +68,11 @@ namespace Shop.Cart.ServiceEndpoint
                         h.Username(rabbitConfig.User);
                         h.Password(rabbitConfig.Password);
                     });
-                    
-                    busCfg.AddServiceHost<CartServiceMap>(
-                        host,
-                        srvCfg =>
-                        { 
-                            srvCfg.Configure(cartServiceMap => cartServiceMap.CartServiceCommands,
-                                queueCfg =>
-                                {
-                                    queueCfg.Configure(
-                                        x => x.AddOrUpdateProductInCart, commandCfg =>
-                                        {
-                                            //Custom mapping exception to error codes for command
-                                        });
 
-                                    queueCfg.Configure(
-                                        x => x.DeleteProductFromCart, commandCfg =>
-                                        {
-                                            //Custom mapping exception to error codes for command
-                                        });
-
-                                    queueCfg.ConfigureCommandExceptionHandling = opt =>
-                                    {
-                                        //Custom mapping exception to error codes for queue
-                                    };
-                                });
-
-                            srvCfg.ConfigureCommandExceptionHandling = exceptionCfg =>
-                            {
-                                //Custom mapping exception to error codes for service
-                                exceptionCfg.SetDefaultExceptionResponse(
-                                    (int) CartErrorCodes.UnknownError,
-                                    "Unknown cart error");
-                            };
-                        });
+                    busCfg.AddServiceClient(
+                        host, 
+                        "cart-callback-queue", 
+                        configurator => configurator.AddService<OrderServiceMap>());
                 }));
 
             services.AddSingleton<IBus>(provider => provider.GetRequiredService<IServiceBus>());

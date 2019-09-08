@@ -6,16 +6,14 @@ namespace MassInstance.Configuration
 {
     public interface IServiceConfiguration<TService> : IServiceConfiguration where TService : IServiceMap
     {
-        void Configure<TQueue>(
-            Expression<Func<TService, TQueue>> queueSelector,
-            Action<IQueueConfiguration<TQueue>> configureQueue = null) where TQueue : IQueueMap;
+        IQueueConfiguration<TQueue> SelectQueue<TQueue>(
+            Expression<Func<TService, TQueue>> queueSelector) where TQueue : IQueueMap;
     }
 
     public interface IServiceConfiguration
     {
-        void Configure<TService,TQueue>(
-            Expression<Func<TService, TQueue>> queueSelector,
-            Action<IQueueConfiguration<TQueue>> configureQueue = null) 
+        IQueueConfiguration<TQueue> SelectQueue<TService,TQueue>(
+            Expression<Func<TService, TQueue>> queueSelector) 
             where TQueue : IQueueMap 
             where TService : IServiceMap;
 

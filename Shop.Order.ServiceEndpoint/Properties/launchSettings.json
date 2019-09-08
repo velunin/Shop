@@ -8,20 +8,20 @@
     }
   },
   "profiles": {
-    "Shop Production": {
+    "Production": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Production"
       }
     },
-    "Shop Development": {
+    "Development": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:5001/"
     },
-    "Shop Development Second Instance": {
+    "DevelopmentSecond": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
