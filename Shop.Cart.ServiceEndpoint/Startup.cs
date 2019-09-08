@@ -7,6 +7,7 @@ using MassInstance.ServiceCollection;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,8 @@ namespace Shop.Cart.ServiceEndpoint
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
             services
@@ -57,6 +59,8 @@ namespace Shop.Cart.ServiceEndpoint
 
         private void RegisterServiceBus(IServiceCollection services)
         {
+            services.AddMassInstance();
+
             services.AddSingleton(provider => Bus.Factory.CreateMassInstanceRabbitMqBus(
                 provider.GetRequiredService<IMassInstanceConsumerFactory>(),
                 busCfg =>

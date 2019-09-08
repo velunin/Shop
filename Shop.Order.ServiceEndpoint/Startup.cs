@@ -10,6 +10,7 @@ using MassTransit.EntityFrameworkCoreIntegration.Saga;
 using MassTransit.Saga;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +37,8 @@ namespace Shop.Order.ServiceEndpoint
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1); 
+
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMqConfig"));
 
             services.AddEntityFrameworkSqlServer().AddDbContext<OrderDbContext>((provider, builder) =>
@@ -70,6 +72,7 @@ namespace Shop.Order.ServiceEndpoint
         private void RegisterServiceBus(IServiceCollection services)
         {
             services.AddMassInstance();
+
             services.AddSagaStateMachines(
                 GetType().Assembly,
                 ServiceLifetime.Transient);
@@ -93,17 +96,16 @@ namespace Shop.Order.ServiceEndpoint
 
                     busCfg.AddServiceHost<OrderServiceMap>(host, srvCfg =>
                     {
-                        var commandQueueConfig = srvCfg.SelectQueue(s => s.OrderCommands);
+                        var orderCommands = srvCfg.SelectQueue(s => s.OrderCommands);
 
-                        commandQueueConfig.ConfigureCommandExceptionHandling = options =>
+                        orderCommands.ConfigureCommandExceptionHandling = options =>
                             options.SetDefaultExceptionResponse(
-                                (int) OrderErrorCodes.UnknownError,
-                                "Unknown error");
+                                (int) OrderErrorCodes.UnknownError, "Unknown error");
 
-                        commandQueueConfig
+                        orderCommands
                             .SelectCommand(c => c.CreateOrderCommand)
-                            .SetExceptionHandling(h =>
-                                h.Map<InvalidOperationException>((int) OrderErrorCodes.AlreadySold, "Already sold"));
+                            .SetExceptionHandling(h => h.Map<InvalidOperationException>(
+                                (int) OrderErrorCodes.AlreadySold, "Already sold"));
                     });
                 }));
 
